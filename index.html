@@ -1,58 +1,207 @@
 <!DOCTYPE html>
-<html>
+<html lang="hi">
 <head>
-  <title>Birth Certificate Registration</title>
-  <style>
-    body { font-family: sans-serif; padding: 20px; background-color: #f4f4f9; }
-    form { max-width: 400px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-    input, select { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;}
-    button { width: 100%; padding: 10px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
-    button:hover { background: #218838; }
-    h2 { text-align: center; color: #333; }
-  </style>
+    <meta charset="UTF-8">
+    <title>आँगनबाड़ी केंद्र सर्वे फॉर्म</title>
+    <style>
+        body { font-family: 'Arial', sans-serif; background-color: #e9ecef; padding: 20px; direction: ltr; }
+        .form-card { max-width: 800px; margin: auto; background: #fff; padding: 30px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        .section-title { background: #3498db; color: white; padding: 8px 15px; margin-top: 25px; border-radius: 5px; }
+        label { display: block; margin-top: 15px; font-weight: bold; color: #34495e; }
+        input, select, textarea { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #bdc3c7; border-radius: 5px; box-sizing: border-box; }
+        .hidden { display: none; background: #f9f9f9; padding: 15px; border-left: 5px solid #e74c3c; margin-top: 10px; }
+        button { width: 100%; padding: 15px; background: #27ae60; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 18px; margin-top: 30px; transition: 0.3s; }
+        button:hover { background: #219150; }
+    </style>
 </head>
 <body>
 
-  <form name="submit-to-google-sheet">
-    <h2>Birth Registration</h2>
-    
-    <label>Child's Full Name</label>
-    <input type="text" name="ChildName" placeholder="Ex: Arjun Kumar" required>
+<div class="form-card">
+    <h2>आँगनबाड़ी केंद्र सर्वे डाटा एंट्री</h2>
+    <form name="survey-form">
 
-    <label>Date of Birth</label>
-    <input type="date" name="DOB" required>
+        <div class="section-title">केंद्र की सामान्य जानकारी</div>
+        <label>केंद्र कोड</label>
+        <input type="text" name="KendraCode" required>
+        
+        <label>यूनिक कोड</label>
+        <input type="text" name="UniqueCode" required>
 
-    <label>Gender</label>
-    <select name="Gender" required>
-        <option value="Male">Male</option>
-        <option value="Female">Female</option>
-        <option value="Other">Other</option>
-    </select>
+        <label>सेक्टर का नाम</label>
+        <input type="text" name="SectorName" required>
 
-    <label>Father's Name</label>
-    <input type="text" name="FatherName" placeholder="Father's Full Name" required>
+        <label>कार्यरत सेविका का प्रकार</label>
+        <select name="SevikaType">
+            <option value="नियमित">नियमित</option>
+            <option value="प्रभारी">प्रभारी</option>
+        </select>
 
-    <label>Mother's Name</label>
-    <input type="text" name="MotherName" placeholder="Mother's Full Name" required>
+        <label>सेविका का नाम</label>
+        <input type="text" name="SevikaName" required>
 
-    <label>Place of Birth</label>
-    <input type="text" name="PlaceOfBirth" placeholder="City/Hospital Name" required>
+        <label>सेविका का मोबाइल नंबर</label>
+        <input type="tel" name="SevikaMobile" pattern="[0-9]{10}" placeholder="10 अंकों का नंबर" required>
 
-    <button type="submit">Register Birth</button>
-  </form>
+        <div class="section-title">सहायिका की जानकारी</div>
+        <label>क्या केंद्र पर सहायिका कार्यरत है?</label>
+        <select name="SahayikaExists" id="sahayikaSelect" onchange="toggleSahayika()">
+            <option value="नहीं">नहीं</option>
+            <option value="हाँ">हाँ</option>
+        </select>
 
-  <script>
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbxaollbMNpb5BLr4qjCoPZoh-6auUDFwr_Ga2w58uP_lFYXM3k8jEao6GO4DFZO76DP/exec'; // <--- PASTE YOUR URL HERE
-    const form = document.forms['submit-to-google-sheet'];
+        <div id="sahayikaBox" class="hidden">
+            <label>सहायिका का नाम</label>
+            <input type="text" name="SahayikaName" id="sName">
+            <label>सहायिका का मोबाइल नंबर</label>
+            <input type="tel" name="SahayikaMobile" id="sMobile" pattern="[0-9]{10}">
+        </div>
 
+        <div class="section-title">क्षेत्र एवं जनसंख्या विवरण</div>
+        <label>केंद्र का वार्ड संख्या</label>
+        <input type="number" name="WardNo" required>
+
+        <label>पंजीकृत स्कूल पूर्व बच्चों की संख्या</label>
+        <input type="number" name="PreSchoolChildren" required>
+
+        <label>पंजीकृत गर्भवती महिलाओं की संख्या</label>
+        <input type="number" name="PregnantWomen" required>
+
+        <label>पंजीकृत धात्री महिलाओं की संख्या</label>
+        <input type="number" name="LactatingMothers" required>
+
+        <label>पंजीकृत टीएचआर (THR) बच्चों की संख्या</label>
+        <input type="number" name="THRChildren" required>
+
+        <label>पंजीकृत अतिकुपोषित बच्चों की संख्या</label>
+        <input type="number" name="MalnourishedChildren" required>
+
+        <label>पोषक क्षेत्र की कुल आबादी (लगभग)</label>
+        <input type="number" name="TotalPopulation" required>
+
+        <label>पंचायत का नाम</label>
+        <input type="text" name="PanchayatName" required>
+
+        <label>वार्ड सदस्य का नाम</label>
+        <input type="text" name="WardMember" required>
+
+        <label>पंचायत के मुखिया का नाम</label>
+        <input type="text" name="MukhiyaName" required>
+
+        <div class="section-title">भवन एवं सुविधा विवरण</div>
+        <label>केंद्र भवन का प्रकार</label>
+        <select name="BuildingType">
+            <option value="अपना भवन">अपना भवन</option>
+            <option value="विद्यालय में संचालित">विद्यालय में संचालित</option>
+            <option value="सामुदायिक भवन">सामुदायिक भवन</option>
+            <option value="कृषि भवन">कृषि भवन</option>
+            <option value="पंचायत भवन">पंचायत भवन</option>
+            <option value="किराए पर संचालित">किराए पर संचालित</option>
+        </select>
+
+        <label>क्या भवन में मरम्मत की आवश्यकता है?</label>
+        <select name="RepairNeeded" id="repairSelect" onchange="toggleRepair()">
+            <option value="नहीं">नहीं</option>
+            <option value="हाँ">हाँ</option>
+        </select>
+        <div id="repairBox" class="hidden">
+            <label>मरम्मत की आवश्यकता का कारण</label>
+            <textarea name="RepairReason" id="repairText"></textarea>
+        </div>
+
+        <label>केंद्र का प्रकार</label>
+        <select name="KendraType">
+            <option value="सामान्य केंद्र">सामान्य केंद्र</option>
+            <option value="मोडेल आँगनवाड़ी">मोडेल आँगनवाड़ी</option>
+            <option value="बाला केंद्र">बाला केंद्र</option>
+            <option value="सक्षम आँगनबाड़ी">सक्षम आँगनबाड़ी</option>
+        </select>
+
+        <!-- पेयजल लॉजिक -->
+        <label>पेयजल की सुविधा है?</label>
+        <select name="DrinkingWater" id="waterSelect" onchange="toggleReason('waterSelect', 'waterBox', 'waterText')">
+            <option value="हाँ">हाँ</option>
+            <option value="नहीं">नहीं</option>
+        </select>
+        <div id="waterBox" class="hidden">
+            <label>सुविधा नहीं होने का कारण</label>
+            <input type="text" name="WaterReason" id="waterText">
+        </div>
+
+        <!-- शौचालय लॉजिक -->
+        <label>शौचालय की सुविधा है?</label>
+        <select name="Toilet" id="toiletSelect" onchange="toggleReason('toiletSelect', 'toiletBox', 'toiletText')">
+            <option value="हाँ">हाँ</option>
+            <option value="नहीं">नहीं</option>
+        </select>
+        <div id="toiletBox" class="hidden">
+            <label>सुविधा नहीं होने का कारण</label>
+            <input type="text" name="ToiletReason" id="toiletText">
+        </div>
+
+        <!-- बिजली लॉजिक -->
+        <label>बिजली की सुविधा है?</label>
+        <select name="Electricity" id="elecSelect" onchange="toggleReason('elecSelect', 'elecBox', 'elecText')">
+            <option value="हाँ">हाँ</option>
+            <option value="नहीं">नहीं</option>
+        </select>
+        <div id="elecBox" class="hidden">
+            <label>सुविधा नहीं होने का कारण</label>
+            <input type="text" name="ElectricityReason" id="elecText">
+        </div>
+
+        <button type="submit" id="submitBtn">डाटा सुरक्षित करें</button>
+    </form>
+</div>
+
+<script>
+    const scriptURL = 'YOUR_GOOGLE_SCRIPT_URL_HERE'; // यहाँ अपनी URL डालें
+    const form = document.forms['survey-form'];
+
+    // सहायिका लॉजिक
+    function toggleSahayika() {
+        const val = document.getElementById('sahayikaSelect').value;
+        const box = document.getElementById('sahayikaBox');
+        box.classList.toggle('hidden', val === 'नहीं');
+        document.getElementById('sName').required = (val === 'हाँ');
+    }
+
+    // मरम्मत लॉजिक
+    function toggleRepair() {
+        const val = document.getElementById('repairSelect').value;
+        const box = document.getElementById('repairBox');
+        box.classList.toggle('hidden', val === 'नहीं');
+        document.getElementById('repairText').required = (val === 'हाँ');
+    }
+
+    // सामान्य कारण लॉजिक (पेयजल, शौचालय, बिजली के लिए)
+    function toggleReason(selectId, boxId, textId) {
+        const val = document.getElementById(selectId).value;
+        const box = document.getElementById(boxId);
+        box.classList.toggle('hidden', val === 'हाँ');
+        document.getElementById(textId).required = (val === 'नहीं');
+    }
+
+    // फॉर्म सबमिट लॉजिक
     form.addEventListener('submit', e => {
-      e.preventDefault();
-      fetch(scriptURL, { method: 'POST', body: new FormData(form)})
-        .then(response => alert("Thank You! Registration Data Submitted Successfully."))
-        .then(() => { window.location.reload(); })
-        .catch(error => console.error('Error!', error.message));
+        e.preventDefault();
+        const btn = document.getElementById('submitBtn');
+        btn.innerHTML = "भेजा जा रहा है...";
+        btn.disabled = true;
+
+        fetch(scriptURL, { method: 'POST', body: new FormData(form)})
+            .then(response => {
+                alert("डाटा सफलतापूर्वक गूगल शीट में सेव हो गया है!");
+                form.reset();
+                window.location.reload();
+            })
+            .catch(error => {
+                alert("त्रुटि! कृपया इंटरनेट कनेक्शन चेक करें।");
+                btn.disabled = false;
+                btn.innerHTML = "डाटा सुरक्षित करें";
+            });
     });
-  </script>
+</script>
 
 </body>
 </html>
