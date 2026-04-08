@@ -23,16 +23,42 @@
 
         <div class="section-title">केंद्र की सामान्य जानकारी</div>
         <label>केंद्र कोड</label>
-        <input type="text" name="KendraCode" required>
+        <input type="number" name="KendraCode" 
+	inputmode="numeric" 
+        pattern="[0-9]{4}" 
+        maxlength="4"	
+	oninput="this.value = this.value.replace(/[^0-9]/g, '');" 
+        placeholder="केंद्र कोड " required>
         
         <label>यूनिक कोड</label>
-        <input type="text" name="UniqueCode" required>
+        <input type="number" name="UniqueCode" 
+	inputmode="numeric" 
+        pattern="[0-9]{11}" 
+        maxlength="11"	
+	oninput="this.value = this.value.replace(/[^0-9]/g, '');" 
+        placeholder="11 अंकों का युनिक कोड पोषण ट्रैकर से" required>
 
         <label>सेक्टर का नाम</label>
-        <input type="text" name="SectorName" required>
-
+	<select name="sectorType" required>
+    <!-- Placeholder option: User MUST change this to submit -->
+    <option value="" disabled selected>सेक्टर चुनें</option>
+            <option value="S01">S01</option>
+            <option value="S02">S02</option>
+	    <option value="S03">S03</option>
+	    <option value="S04">S04</option>
+	    <option value="S05">S05</option>
+	    <option value="S06">S06</option>
+	    <option value="S07">S07</option>
+	    <option value="S08">S08</option>
+	   <option value="S09">S09</option>
+	   <option value="S10">S10</option>
+	   <option value="S11">S11</option>
+        </select>
+	
         <label>कार्यरत सेविका का प्रकार</label>
-        <select name="SevikaType">
+        
+	<select name="sectorType" required>
+        
             <option value="नियमित">नियमित</option>
             <option value="प्रभारी">प्रभारी</option>
         </select>
@@ -46,6 +72,7 @@
         <div class="section-title">सहायिका की जानकारी</div>
         <label>क्या केंद्र पर सहायिका कार्यरत है?</label>
         <select name="SahayikaExists" id="sahayikaSelect" onchange="toggleSahayika()">
+	
             <option value="नहीं">नहीं</option>
             <option value="हाँ">हाँ</option>
         </select>
@@ -59,6 +86,7 @@
 
         <div class="section-title">क्षेत्र एवं जनसंख्या विवरण</div>
         <label>केंद्र का वार्ड संख्या</label>
+
         <input type="number" name="WardNo" required>
 
         <label>पंजीकृत स्कूल पूर्व बच्चों की संख्या</label>
@@ -80,7 +108,31 @@
         <input type="number" name="TotalPopulation" required>
 
         <label>पंचायत का नाम</label>
-        <input type="text" name="PanchayatName" required>
+	<select name="PanchayatName" required>
+    <option value="" disabled selected>पंचायत चुनें</option>
+    <option value="Dewan">Dewan</option>
+    <option value="Hulaschak Veer">Hulaschak Veer</option>
+    <option value="NIMADA">NIMADA</option>
+    <option value="SANDA">SANDA</option>
+    <option value="MORIYAWAN">MORIYAWAN</option>
+    <option value="BARANI">BARANI (Nagar Parishad)</option>
+    <option value="KOSUT">KOSUT</option>
+    <option value="Devdaha">Devdaha</option>
+    <option value="Satparsa">Satparsa</option>
+    <option value="Dhanarua">Dhanarua</option>
+    <option value="MAI-NETAUL">MAI-NETAUL</option>
+    <option value="BARI BIGHA">BARI BIGHA</option>
+    <option value="GOVINDPUR-BAURAHI">GOVINDPUR-BAURAHI</option>
+    <option value="SONMAI">SONMAI</option>
+    <option value="CHATI">CHATI</option>
+    <option value="Paveda">Paveda</option>
+    <option value="Bahrampur">Bahrampur</option>
+    <option value="Vijaypura">Vijaypura</option>
+    <option value="Nadwan">Nadwan</option>
+    <option value="Pathrahat">Pathrahat</option>
+</select>
+
+        
 
         <label>वार्ड सदस्य का नाम</label>
         <input type="text" name="WardMember" required>
@@ -202,6 +254,7 @@
             });
     });
 </script>
+
 
 </body>
 </html>
