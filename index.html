@@ -1,47 +1,43 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Fixed Map Locator</title>
+    <title>Working Map Locator</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; text-align: center; padding: 30px; background: #f0f2f5; }
-        .box { background: white; padding: 20px; border-radius: 10px; display: inline-block; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        input { padding: 12px; margin: 10px; width: 180px; border: 1px solid #ddd; border-radius: 5px; font-size: 16px; }
-        button { padding: 12px 25px; background: #4285F4; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        button:hover { background: #357ae8; }
-        #mapFrame { width: 100%; max-width: 700px; height: 450px; border: 2px solid #ddd; margin-top: 25px; display: none; border-radius: 8px; }
+        body { font-family: sans-serif; text-align: center; padding: 20px; background: #f9f9f9; }
+        .input-card { background: white; padding: 20px; border-radius: 8px; display: inline-block; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        input { padding: 10px; margin: 5px; width: 150px; border: 1px solid #ccc; border-radius: 4px; }
+        button { padding: 10px 20px; background: #4285F4; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        #mapFrame { width: 100%; max-width: 600px; height: 400px; border: 1px solid #ddd; margin-top: 20px; display: none; }
     </style>
 </head>
 <body>
 
-    <div class="box">
-        <h2>📍 Map Search</h2>
-        <input type="number" id="lat" placeholder="Latitude (e.g. 25.59)" step="any">
-        <input type="number" id="lng" placeholder="Longitude (e.g. 85.12)" step="any">
-        <br>
-        <button onclick="showMap()">SHOW MAP NOW</button>
+    <div class="input-card">
+        <h2>📍 Map Locator</h2>
+        <input type="text" id="lat" placeholder="Latitude">
+        <input type="text" id="lng" placeholder="Longitude">
+        <br><br>
+        <button onclick="updateMap()">SHOW MAP</button>
     </div>
 
     <br>
-    <!-- The Map appears here -->
+    <!-- Map displays here -->
     <iframe id="mapFrame"></iframe>
 
     <script>
-        function showMap() {
-            // 1. Get the raw values
-            var latVal = document.getElementById('lat').value;
-            var lngVal = document.getElementById('lng').value;
+        function updateMap() {
+            var latVal = document.getElementById('lat').value.trim();
+            var lngVal = document.getElementById('lng').value.trim();
             var frame = document.getElementById('mapFrame');
 
-            if (latVal != "" && lngVal != "") {
-                // 2. Build the URL using the + sign (Concatenation)
-                // This prevents the "{lat}" error you saw earlier
-                var finalUrl = "https://google.com" + latVal + "," + lngVal + "&output=embed";
+            if (latVal && lngVal) {
+                // FIXED URL: Must start with https://maps. and use + for merging
+                var finalUrl = "https://maps.google.com/maps?q=" + latVal + "," + lngVal + "&output=embed";
                 
-                // 3. Update the frame
                 frame.src = finalUrl;
                 frame.style.display = "inline-block";
             } else {
-                alert("Please enter both Latitude and Longitude.");
+                alert("Please enter both coordinates!");
             }
         }
     </script>
