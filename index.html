@@ -34,55 +34,56 @@
             return;
         }
 
-        // The CSV link to your published sheet
+        // 1. Your Sheet Link
         const sheetLink = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTK3UMn0hlZmpM-CymOvERayPN9rh3xIoTC5J9yO7RyTna76hQofcBeQJlKAXYHS2Fov_YzsoBX8ltU/pub?output=csv";
 
-        // Using the 'raw' proxy is more direct and stable
-        const proxyUrl = "https://allorigins.win" + encodeURIComponent(sheetLink);
+        // 2. Using CorsProxy.io (Very reliable alternative)
+        const proxyUrl = "https://corsproxy.io/?" + encodeURIComponent(sheetLink);
 
         status.innerText = "🔍 Connecting to Sheet...";
         status.style.color = "blue";
 
         try {
             const response = await fetch(proxyUrl);
-            
-            if (!response.ok) {
-                throw new Error("Could not reach the server. Check internet.");
-            }
+            if (!response.ok) throw new Error("Server unreachable");
 
             const csvData = await response.text();
             
-            // Clean up the data in case of weird spacing
-            const rows = csvData.split("\n").map(row => row.trim());
+            // Helpful Debug: See the first 50 characters of what we got
+            console.log("Data Received:", csvData.substring(0, 50));
+
+            const rows = csvData.split("\n");
             let lat = "";
             let lng = "";
 
             for (let i = 0; i < rows.length; i++) {
-                const columns = rows[i].split(",");
+                // Split by comma and clean up spaces/quotes
+                const columns = rows[i].split(",").map(c => c.trim().replace(/^"|"$/g, ''));
+                
                 // Column 0 = Code, Column 1 = Lat, Column 2 = Long
-                if (columns[0] && columns[0].trim().toUpperCase() === codeInput) {
-                    lat = columns[1].trim();
-                    lng = columns[2].trim();
+                if (columns[0] && columns[0].toUpperCase() === codeInput) {
+                    lat = columns[1];
+                    lng = columns[2];
                     break;
                 }
             }
 
             if (lat && lng) {
-                status.innerText = "✅ Found! Redirecting...";
+                status.innerText = "✅ Found! Opening Maps...";
                 status.style.color = "green";
-                const mapUrl = "https://google.com" + lat + "," + lng;
+                const mapUrl = `https://google.com{lat},${lng}`;
                 
                 setTimeout(() => {
                     window.location.href = mapUrl;
                 }, 800);
             } else {
-                status.innerText = "❌ Center '" + codeInput + "' not found.";
+                status.innerText = `❌ Code '${codeInput}' not found in Sheet.`;
                 status.style.color = "red";
             }
         } catch (error) {
-            status.innerText = "⚠️ Connection Failed. Try again in a moment.";
+            status.innerText = "⚠️ Connection Failed. Check internet or Proxy.";
             status.style.color = "orange";
-            console.error("Fetch Error:", error);
+            console.error("Error:", error);
         }
     }
 </script>
