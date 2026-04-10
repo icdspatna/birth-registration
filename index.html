@@ -34,30 +34,32 @@
             return;
         }
 
-        // 1. YOUR GOOGLE SHEET LINK
-        const sheetLink = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTK3UMn0hlZmpM-CymOvERayPN9rh3xIoTC5J9yO7RyTna76hQofcBeQJlKAXYHS2Fov_YzsoBX8ltU/pub?gid=0&single=true&output=csv";
+        // The CSV link to your published sheet
+        const sheetLink = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTK3UMn0hlZmpM-CymOvERayPN9rh3xIoTC5J9yO7RyTna76hQofcBeQJlKAXYHS2Fov_YzsoBX8ltU/pub?output=csv";
 
-        // 2. FIXED PROXY URL (Added /get?url=)
+        // Using the 'raw' proxy is more direct and stable
         const proxyUrl = "https://allorigins.win" + encodeURIComponent(sheetLink);
 
-        status.innerText = "🔍 Searching Sheet...";
+        status.innerText = "🔍 Connecting to Sheet...";
         status.style.color = "blue";
 
         try {
             const response = await fetch(proxyUrl);
-            if (!response.ok) throw new Error("Network issue");
-
-            // AllOrigins returns a JSON object, the CSV text is inside 'contents'
-            const data = await response.json();
-            const csvData = data.contents;
             
-            const rows = csvData.split("\n");
+            if (!response.ok) {
+                throw new Error("Could not reach the server. Check internet.");
+            }
+
+            const csvData = await response.text();
+            
+            // Clean up the data in case of weird spacing
+            const rows = csvData.split("\n").map(row => row.trim());
             let lat = "";
             let lng = "";
 
             for (let i = 0; i < rows.length; i++) {
                 const columns = rows[i].split(",");
-                // Check if Column A matches your input
+                // Column 0 = Code, Column 1 = Lat, Column 2 = Long
                 if (columns[0] && columns[0].trim().toUpperCase() === codeInput) {
                     lat = columns[1].trim();
                     lng = columns[2].trim();
@@ -66,26 +68,25 @@
             }
 
             if (lat && lng) {
-                status.innerText = "✅ Found! Opening Maps...";
+                status.innerText = "✅ Found! Redirecting...";
                 status.style.color = "green";
-                
-                // 3. FIXED GOOGLE MAPS URL
                 const mapUrl = "https://google.com" + lat + "," + lng;
                 
                 setTimeout(() => {
                     window.location.href = mapUrl;
                 }, 800);
             } else {
-                status.innerText = "❌ Code '" + codeInput + "' not found.";
+                status.innerText = "❌ Center '" + codeInput + "' not found.";
                 status.style.color = "red";
             }
         } catch (error) {
-            status.innerText = "⚠️ Error: Connection failed";
+            status.innerText = "⚠️ Connection Failed. Try again in a moment.";
             status.style.color = "orange";
-            console.error(error);
+            console.error("Fetch Error:", error);
         }
     }
 </script>
+
 
 </body>
 </html>
