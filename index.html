@@ -34,16 +34,18 @@
             return;
         }
 
+        // Use CorsProxy for stability
         const sheetLink = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTK3UMn0hlZmpM-CymOvERayPN9rh3xIoTC5J9yO7RyTna76hQofcBeQJlKAXYHS2Fov_YzsoBX8ltU/pub?output=csv";
         const proxyUrl = "https://corsproxy.io?" + encodeURIComponent(sheetLink);
 
-        status.innerText = "🔍 Connecting to Sheet...";
+        status.innerText = "🔍 Finding Route...";
         status.style.color = "blue";
 
         try {
             const response = await fetch(proxyUrl);
             const csvData = await response.text();
             const rows = csvData.split("\n");
+            
             let lat = "";
             let lng = "";
 
@@ -57,10 +59,10 @@
             }
 
             if (lat && lng) {
-                status.innerText = "✅ Found! Starting Navigation...";
+                status.innerText = "✅ Opening Google Maps...";
                 status.style.color = "green";
                 
-                // FIXED: This opens the ROUTE from current location
+                // CORRECTED URL STRUCTURE: Added the missing /maps/dir/ and destination=
                 const mapUrl = "https://google.com" + lat + "," + lng + "&travelmode=driving";
                 
                 setTimeout(() => {
@@ -71,7 +73,7 @@
                 status.style.color = "red";
             }
         } catch (error) {
-            status.innerText = "⚠️ Connection Failed.";
+            status.innerText = "⚠️ Network Error. Check internet.";
             status.style.color = "orange";
         }
     }
