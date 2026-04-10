@@ -23,23 +23,25 @@
     <!-- This is the window that will show the map -->
     <iframe id="mapFrame" allowfullscreen></iframe>
 
-    <script>
-        function showMap() {
-            const lat = document.getElementById('lat').value;
-            const lng = document.getElementById('lng').value;
-            const frame = document.getElementById('mapFrame');
+   function showMap() {
+    // 1. Get the values from your input boxes
+    const latValue = document.getElementById('lat').value;
+    const lngValue = document.getElementById('lng').value;
+    const frame = document.getElementById('mapFrame');
 
-            if (lat && lng) {
-                // Uses Google's Embed API structure
-                // Note: Sometimes Google limits embeds without an API key, 
-                // but this format often works for testing.
-                frame.src = `https://google.com{lat},${lng}&hl=es;z=14&output=embed`;
-                frame.style.display = "inline-block";
-            } else {
-                alert("Enter coordinates!");
-            }
-        }
-    </script>
+    if (latValue && lngValue) {
+        // 2. Build the URL correctly. 
+        // We use backticks `` and ${} to insert the numbers into the link.
+        const correctUrl = `https://google.com{latValue},${lngValue}&hl=es;z=14&output=embed`;
+        
+        // 3. Set the iframe source and show it
+        frame.src = correctUrl;
+        frame.style.display = "inline-block";
+    } else {
+        alert("Please enter both Latitude and Longitude first.");
+    }
+}
+
 
 </body>
 </html>
