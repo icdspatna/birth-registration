@@ -5,21 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GPS Center Navigator</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; display: flex; justify-content: center; padding: 40px; background: #f0f2f5; }
+        body { font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; padding: 40px; background: #f0f2f5; }
         .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); width: 350px; text-align: center; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border: 2px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 16px; outline: none; }
-        input:focus { border-color: #1a73e8; }
-        button { background: #1a73e8; color: white; border: none; padding: 14px; width: 100%; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; margin-top: 10px; }
-        button:hover { background: #1557b0; }
-        #status { margin-top: 20px; color: #555; font-size: 14px; min-height: 20px; font-weight: 500; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 2px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
+        button { background: #1a73e8; color: white; border: none; padding: 14px; width: 100%; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        #status { margin-top: 20px; font-size: 14px; font-weight: 500; }
     </style>
 </head>
 <body>
 
 <div class="card">
     <h2>📍 Center Navigator</h2>
-    <p style="font-size: 13px; color: #666;">Enter Code to start GPS route</p>
-    <input type="text" id="centerCode" placeholder="Ex: C101, 502, etc.">
+    <input type="text" id="centerCode" placeholder="Enter Center Code (Ex: C101)">
     <button onclick="findAndNavigate()">Get Directions</button>
     <div id="status"></div>
 </div>
@@ -28,17 +25,12 @@
     async function findAndNavigate() {
         const codeInput = document.getElementById('centerCode').value.trim().toUpperCase();
         const status = document.getElementById('status');
+        if (!codeInput) { alert("Please enter a code"); return; }
 
-        if (!codeInput) {
-            alert("Please enter a code");
-            return;
-        }
-
-        // Use CorsProxy for stability
         const sheetLink = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTK3UMn0hlZmpM-CymOvERayPN9rh3xIoTC5J9yO7RyTna76hQofcBeQJlKAXYHS2Fov_YzsoBX8ltU/pub?output=csv";
         const proxyUrl = "https://corsproxy.io?" + encodeURIComponent(sheetLink);
 
-        status.innerText = "🔍 Finding Route...";
+        status.innerText = "🔍 Searching...";
         status.style.color = "blue";
 
         try {
@@ -59,26 +51,23 @@
             }
 
             if (lat && lng) {
-                status.innerText = "✅ Opening Google Maps...";
+                status.innerText = "✅ Found! Opening Maps...";
                 status.style.color = "green";
                 
-                // CORRECTED URL STRUCTURE: Added the missing /maps/dir/ and destination=
-                const mapUrl = "https://google.com" + lat + "," + lng + "&travelmode=driving";
+                // THE CRITICAL FIX: Proper URL format
+                const mapUrl = "https://google.com" + lat + "," + lng;
                 
-                setTimeout(() => {
-                    window.location.href = mapUrl;
-                }, 800);
+                window.location.href = mapUrl;
             } else {
-                status.innerText = "❌ Code '" + codeInput + "' not found.";
+                status.innerText = "❌ Code not found.";
                 status.style.color = "red";
             }
         } catch (error) {
-            status.innerText = "⚠️ Network Error. Check internet.";
+            status.innerText = "⚠️ Error: Connection issue.";
             status.style.color = "orange";
         }
     }
 </script>
-
 
 </body>
 </html>
