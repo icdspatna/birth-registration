@@ -20,7 +20,7 @@
     <button onclick="findAndNavigate()">Get Directions</button>
     <div id="status"></div>
 </div>
-
+<script>
 async function findAndNavigate() {
     const codeInput = document.getElementById('centerCode').value.trim().toUpperCase();
     const status = document.getElementById('status');
@@ -68,7 +68,7 @@ async function findAndNavigate() {
         status.style.color = "orange";
     }
 }
-
+</script>
 
 
 </body>
