@@ -45,12 +45,18 @@
             const rows = csvData.split("\n");
             let lat = "", lng = "";
 
-            for (let i = 0; i < rows.length; i++) {
-                const columns = rows[i].split(",").map(c => c.trim().replace(/^"|"$/g, ''));
-                if (columns[0] && columns[0].toUpperCase() === codeInput) {
-                    lat = columns[1];
-                    lng = columns[2];
-                    break;
+            // Replace the "for" loop in your script with this:
+for (let i = 0; i < rows.length; i++) {
+    const columns = rows[i].split(",").map(c => c.trim().replace(/^"|"$/g, ''));
+    
+    // This checks if Column A EXACTLY matches or CONTAINS your input
+    if (columns[0] && columns[0].toUpperCase() === codeInput) {
+        lat = columns[1];
+        lng = columns[2];
+        break;
+    }
+}
+
                 }
             }
 
