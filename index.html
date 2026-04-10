@@ -31,74 +31,41 @@
             return;
         }
 
-        // Your Google Sheet Link
-        const sheetLink = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTK3UMn0hlZmpM-CymOvERayPN9rh3xIoTC5J9yO7RyTna76hQofcBeQJlKAXYHS2Fov_YzsoBX8ltU/pub?output=csv";
-        const encodedLink = encodeURIComponent(sheetLink);
+        // PASTE YOUR GOOGLE WEB APP URL BELOW
+        const webAppUrl = "https://script.google.com/macros/s/AKfycbxhPYSweWtqeK8cYE5co8yUDVixPtIhDUdoQrW4djgUpU-ztyrcZDxRV9S9FyK8p4TT/exec";
 
-        // List of Proxies to try (Backup system)
-        const proxies = [
-            `https://allorigins.win{encodedLink}`,     // Option 1: AllOrigins (Raw)
-            `https://corsproxy.io{encodedLink}`,              // Option 2: CorsProxy
-            `https://freeboard.io{sheetLink}`     // Option 3: ThingProxy
-        ];
-
-        status.innerText = "🔍 Connecting...";
+        status.innerText = "🔍 Connecting to private proxy...";
         status.style.color = "blue";
 
-        let csvData = null;
-        let activeProxy = "";
+        try {
+            const response = await fetch(webAppUrl);
+            if (!response.ok) throw new Error("Proxy error");
 
-        // Try proxies one by one until one works
-        for (const proxy of proxies) {
-            try {
-                console.log("Trying proxy:", proxy);
-                const response = await fetch(proxy);
-                
-                if (response.ok) {
-                    csvData = await response.text();
-                    activeProxy = proxy;
-                    break; // Stop loop if we found data
+            const csvData = await response.text();
+            const rows = csvData.split("\n");
+            let lat = "", lng = "";
+
+            for (let i = 0; i < rows.length; i++) {
+                const columns = rows[i].split(",").map(c => c.trim().replace(/^"|"$/g, ''));
+                if (columns[0] && columns[0].toUpperCase() === codeInput) {
+                    lat = columns[1];
+                    lng = columns[2];
+                    break;
                 }
-            } catch (e) {
-                console.warn("Proxy failed, trying next...", e);
             }
-        }
 
-        if (!csvData) {
-            status.innerText = "⚠️ Network busy. Please click again.";
-            status.style.color = "orange";
-            return;
-        }
-
-        // Process the data
-        const rows = csvData.split("\n");
-        let lat = "";
-        let lng = "";
-
-        for (let i = 0; i < rows.length; i++) {
-            // Clean columns (remove quotes, spaces)
-            const columns = rows[i].split(",").map(c => c.trim().replace(/^"|"$/g, ''));
-            
-            if (columns[0] && columns[0].toUpperCase() === codeInput) {
-                lat = columns[1];
-                lng = columns[2];
-                break;
-            }
-        }
-
-        if (lat && lng) {
-            status.innerText = "✅ Found! Opening Maps...";
-            status.style.color = "green";
-            
-            // FINAL CORRECT MAP LINK
-            const mapUrl = `https://google.com{lat},${lng}&travelmode=driving`;
-            
-            setTimeout(() => {
+            if (lat && lng) {
+                status.innerText = "✅ Found! Starting Navigation...";
+                status.style.color = "green";
+                const mapUrl = `https://google.com{lat},${lng}`;
                 window.location.href = mapUrl;
-            }, 800);
-        } else {
-            status.innerText = `❌ Code '${codeInput}' not found.`;
-            status.style.color = "red";
+            } else {
+                status.innerText = `❌ Code '${codeInput}' not found.`;
+                status.style.color = "red";
+            }
+        } catch (error) {
+            status.innerText = "⚠️ Connection Error. Ensure Web App is 'Anyone'.";
+            status.style.color = "orange";
         }
     }
 </script>
