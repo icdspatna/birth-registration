@@ -3,23 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GPS Center Navigator</title>
+    <title>GPS Navigator - Fixed</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; display: flex; justify-content: center; padding: 40px; background: #f0f2f5; }
+        body { font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; padding: 40px; background: #f0f2f5; }
         .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); width: 350px; text-align: center; }
         input { width: 100%; padding: 12px; margin: 10px 0; border: 2px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 16px; outline: none; }
-        input:focus { border-color: #1a73e8; }
         button { background: #1a73e8; color: white; border: none; padding: 14px; width: 100%; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; margin-top: 10px; }
-        button:hover { background: #1557b0; }
-        #status { margin-top: 20px; color: #555; font-size: 14px; min-height: 20px; font-weight: 500; }
+        #status { margin-top: 20px; color: #666; font-size: 14px; min-height: 20px; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2>📍 Center Navigator</h2>
-    <p style="font-size: 13px; color: #666;">Enter Code to start GPS route</p>
-    <input type="text" id="centerCode" placeholder="Ex: C101, 502, etc.">
+    <h2>📍 GPS Navigator</h2>
+    <input type="text" id="centerCode" placeholder="Enter Center Code (e.g. C101)">
     <button onclick="findAndNavigate()">Get Directions</button>
     <div id="status"></div>
 </div>
@@ -34,31 +31,31 @@
             return;
         }
 
-        // YOUR ACTUAL GOOGLE SHEET LINK
-        const sheetLink = "https://google.com";
+        // 1. YOUR REAL SHEET LINK (Encoded)
+        const sheetLink = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT3i5liXRYsyWCN2TFNcj8NUAN3lPHh0pO-bUdNQPuwmkvyLu339LkRrlcSephIGGWUnUwnWSJgwvjM/pub?gid=0&single=true&output=csv";
 
-        // THE PROXY URL (CRITICAL FIX: Added /raw?url=)
+        // 2. THE PROXY URL (Strictly formatted to prevent DNS errors)
         const proxyUrl = "https://allorigins.win" + encodeURIComponent(sheetLink);
 
-        status.innerText = "🔍 Fetching data from Sheet...";
+        status.innerText = "🔍 Checking Sheet...";
         status.style.color = "blue";
 
         try {
             const response = await fetch(proxyUrl);
-            if (!response.ok) throw new Error("Network issue or broken link");
+            if (!response.ok) throw new Error("Failed to connect to spreadsheet.");
 
-            const csvData = await response.text();
-            const rows = csvData.split("\n");
+            const textData = await response.text();
+            const rows = textData.split("\n");
 
             let lat = "";
             let lng = "";
 
             for (let i = 0; i < rows.length; i++) {
-                const columns = rows[i].split(",");
-                // Assuming: Column A = Code, B = Lat, C = Long
-                if (columns[0] && columns[0].trim().toUpperCase() === codeInput) {
-                    lat = columns[1].trim();
-                    lng = columns[2].trim();
+                const cols = rows[i].split(",");
+                // Column A: Code | Column B: Lat | Column C: Long
+                if (cols && cols[0].trim().toUpperCase() === codeInput) {
+                    lat = cols[1].trim();
+                    lng = cols[2].trim();
                     break;
                 }
             }
@@ -67,19 +64,15 @@
                 status.innerText = "✅ Found! Opening Google Maps...";
                 status.style.color = "green";
                 
-                // Final Navigation URL
-                const mapUrl = "https://google.com" + lat + "," + lng;
-                
-                // Small delay to let user see the "Found" message
-                setTimeout(() => {
-                    window.location.href = mapUrl;
-                }, 800);
+                // Final Navigation URL from current location
+                const finalUrl = "https://google.com" + lat + "," + lng;
+                window.location.href = finalUrl;
             } else {
-                status.innerText = "❌ Code '" + codeInput + "' not found in your Sheet.";
+                status.innerText = "❌ Code '" + codeInput + "' not found in sheet.";
                 status.style.color = "red";
             }
         } catch (error) {
-            status.innerText = "⚠️ Error: " + error.message;
+            status.innerText = "⚠️ Connection Error: " + error.message;
             status.style.color = "orange";
         }
     }
