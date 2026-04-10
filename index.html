@@ -34,29 +34,30 @@
             return;
         }
 
-        // YOUR ACTUAL GOOGLE SHEET LINK
+        // 1. YOUR GOOGLE SHEET LINK
         const sheetLink = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTK3UMn0hlZmpM-CymOvERayPN9rh3xIoTC5J9yO7RyTna76hQofcBeQJlKAXYHS2Fov_YzsoBX8ltU/pub?gid=0&single=true&output=csv";
 
-        // THE PROXY URL (STRICT FIX: No missing separators)
+        // 2. FIXED PROXY URL (Added /get?url=)
         const proxyUrl = "https://allorigins.win" + encodeURIComponent(sheetLink);
 
-        status.innerText = "🔍 Fetching data from Sheet...";
+        status.innerText = "🔍 Searching Sheet...";
         status.style.color = "blue";
 
         try {
             const response = await fetch(proxyUrl);
-            if (!response.ok) throw new Error("Network issue or broken link");
+            if (!response.ok) throw new Error("Network issue");
 
-            const csvData = await response.text();
+            // AllOrigins returns a JSON object, the CSV text is inside 'contents'
+            const data = await response.json();
+            const csvData = data.contents;
+            
             const rows = csvData.split("\n");
-
             let lat = "";
             let lng = "";
 
-            // Loop through each row of the sheet
             for (let i = 0; i < rows.length; i++) {
                 const columns = rows[i].split(",");
-                // COLUMN A (Index 0) = Code | COLUMN B (Index 1) = Lat | COLUMN C (Index 2) = Long
+                // Check if Column A matches your input
                 if (columns[0] && columns[0].trim().toUpperCase() === codeInput) {
                     lat = columns[1].trim();
                     lng = columns[2].trim();
@@ -65,22 +66,23 @@
             }
 
             if (lat && lng) {
-                status.innerText = "✅ Found! Opening Google Maps...";
+                status.innerText = "✅ Found! Opening Maps...";
                 status.style.color = "green";
                 
-                // Construct standard navigation URL
+                // 3. FIXED GOOGLE MAPS URL
                 const mapUrl = "https://google.com" + lat + "," + lng;
                 
                 setTimeout(() => {
                     window.location.href = mapUrl;
                 }, 800);
             } else {
-                status.innerText = "❌ Center '" + codeInput + "' not found in Sheet.";
+                status.innerText = "❌ Code '" + codeInput + "' not found.";
                 status.style.color = "red";
             }
         } catch (error) {
-            status.innerText = "⚠️ Error: " + error.message;
+            status.innerText = "⚠️ Error: Connection failed";
             status.style.color = "orange";
+            console.error(error);
         }
     }
 </script>
