@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Perfect GPS Navigator</title>
+    <title>GPS Navigator Fix</title>
     <style>
         body { font-family: sans-serif; display: flex; justify-content: center; padding: 40px; background: #eef2f5; }
         .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); width: 350px; text-align: center; }
@@ -16,25 +16,25 @@
 
 <div class="card">
     <h2>📍 केंद्र नेविगेटर</h2>
-    <input type="text" id="centerCode" placeholder="यहाँ केंद्र कोड लिखें">
-    <button onclick="findAndNavigate()">रास्ता देखें</button>
+    <input type="text" id="centerCode" placeholder="Enter Center Code">
+    <button onclick="findAndNavigate()">Get Directions</button>
     <div id="status"></div>
 </div>
 
 <script>
-    // यहाँ अपनी गूगल शीट का CSV लिंक डालें
-    var sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT3i5liXRYsyWCN2TFNcj8NUAN3lPHh0pO-bUdNQPuwmkvyLu339LkRrlcSephIGGWUnUwnWSJgwvjM/pub?output=csv";
+    // 1. अपनी Google Sheet का CSV लिंक यहाँ डालें (Must start with https://)
+    var sheetURL = "YOUR_CSV_LINK_HERE";
 
     async function findAndNavigate() {
         var codeInput = document.getElementById('centerCode').value.trim().toUpperCase();
         var status = document.getElementById('status');
         
         if (codeInput === "") {
-            alert("कृपया केंद्र कोड भरें");
+            alert("Please enter a code");
             return;
         }
 
-        status.innerText = "शीट में खोज रहे हैं...";
+        status.innerText = "Searching Sheet...";
 
         try {
             var response = await fetch(sheetURL);
@@ -55,20 +55,19 @@
             }
 
             if (lat !== "" && lng !== "") {
-                status.innerText = "मिल गया! गूगल मैप खुल रहा है...";
+                status.innerText = "Redirecting...";
                 
-                // एकदम सुरक्षित URL बनाने का तरीका
-                var baseUrl = "https://google.com";
-                var params = "&destination=" + lat + "," + lng + "&travelmode=driving";
-                var mode = "&travelmode=driving";
+                // 2. THIS IS THE CRITICAL FIX:
+                // We use the most basic URL format possible to avoid DNS errors.
+                var finalUrl = "https://google.com" + lat + "," + lng;
                 
-                // बिना किसी गलती के पेज को Redirect करना
-               window.location.href = baseUrl + params;
+                // Use replace to prevent the "blocked" or "broken" browser history
+                window.location.replace(finalUrl);
             } else {
-                status.innerText = "❌ यह कोड शीट में नहीं मिला।";
+                status.innerText = "❌ Code not found in sheet.";
             }
         } catch (error) {
-            status.innerText = "⚠️ शीट लोड नहीं हुई। इंटरनेट या लिंक चेक करें।";
+            status.innerText = "⚠️ Connection Error. Check Internet/Link.";
         }
     }
 </script>
