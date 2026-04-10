@@ -25,49 +25,84 @@
     async function findAndNavigate() {
         const codeInput = document.getElementById('centerCode').value.trim().toUpperCase();
         const status = document.getElementById('status');
-        if (!codeInput) { alert("Please enter a code"); return; }
 
+        if (!codeInput) {
+            alert("Please enter a code");
+            return;
+        }
+
+        // Your Google Sheet Link
         const sheetLink = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTK3UMn0hlZmpM-CymOvERayPN9rh3xIoTC5J9yO7RyTna76hQofcBeQJlKAXYHS2Fov_YzsoBX8ltU/pub?output=csv";
-        const proxyUrl = "https://corsproxy.io?" + encodeURIComponent(sheetLink);
+        const encodedLink = encodeURIComponent(sheetLink);
 
-        status.innerText = "🔍 Searching...";
+        // List of Proxies to try (Backup system)
+        const proxies = [
+            `https://allorigins.win{encodedLink}`,     // Option 1: AllOrigins (Raw)
+            `https://corsproxy.io{encodedLink}`,              // Option 2: CorsProxy
+            `https://freeboard.io{sheetLink}`     // Option 3: ThingProxy
+        ];
+
+        status.innerText = "🔍 Connecting...";
         status.style.color = "blue";
 
-        try {
-            const response = await fetch(proxyUrl);
-            const csvData = await response.text();
-            const rows = csvData.split("\n");
-            
-            let lat = "";
-            let lng = "";
+        let csvData = null;
+        let activeProxy = "";
 
-            for (let i = 0; i < rows.length; i++) {
-                const columns = rows[i].split(",").map(c => c.trim().replace(/^"|"$/g, ''));
-                if (columns[0] && columns[0].toUpperCase() === codeInput) {
-                    lat = columns[1];
-                    lng = columns[2];
-                    break;
+        // Try proxies one by one until one works
+        for (const proxy of proxies) {
+            try {
+                console.log("Trying proxy:", proxy);
+                const response = await fetch(proxy);
+                
+                if (response.ok) {
+                    csvData = await response.text();
+                    activeProxy = proxy;
+                    break; // Stop loop if we found data
                 }
+            } catch (e) {
+                console.warn("Proxy failed, trying next...", e);
             }
+        }
 
-            if (lat && lng) {
-                status.innerText = "✅ Found! Opening Maps...";
-                status.style.color = "green";
-                
-                // THE CRITICAL FIX: Proper URL format
-                const mapUrl = "https://google.com" + lat + "," + lng;
-                
-                window.location.href = mapUrl;
-            } else {
-                status.innerText = "❌ Code not found.";
-                status.style.color = "red";
-            }
-        } catch (error) {
-            status.innerText = "⚠️ Error: Connection issue.";
+        if (!csvData) {
+            status.innerText = "⚠️ Network busy. Please click again.";
             status.style.color = "orange";
+            return;
+        }
+
+        // Process the data
+        const rows = csvData.split("\n");
+        let lat = "";
+        let lng = "";
+
+        for (let i = 0; i < rows.length; i++) {
+            // Clean columns (remove quotes, spaces)
+            const columns = rows[i].split(",").map(c => c.trim().replace(/^"|"$/g, ''));
+            
+            if (columns[0] && columns[0].toUpperCase() === codeInput) {
+                lat = columns[1];
+                lng = columns[2];
+                break;
+            }
+        }
+
+        if (lat && lng) {
+            status.innerText = "✅ Found! Opening Maps...";
+            status.style.color = "green";
+            
+            // FINAL CORRECT MAP LINK
+            const mapUrl = `https://google.com{lat},${lng}&travelmode=driving`;
+            
+            setTimeout(() => {
+                window.location.href = mapUrl;
+            }, 800);
+        } else {
+            status.innerText = `❌ Code '${codeInput}' not found.`;
+            status.style.color = "red";
         }
     }
 </script>
+
 
 </body>
 </html>
