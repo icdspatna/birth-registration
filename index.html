@@ -1,43 +1,67 @@
 <!DOCTYPE html>
-<html>
+<html lang="hi">
 <head>
-    <title>GPS Route Connector</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Center Locator</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; text-align: center; padding: 40px; background: #f0f2f5; }
-        .card { background: white; padding: 25px; border-radius: 12px; display: inline-block; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 320px; }
-        input { width: 90%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; }
-        .nav-btn { background: #1a73e8; color: white; padding: 14px; width: 100%; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; }
-        .nav-btn:hover { background: #1765cc; }
-        p { color: #5f6368; font-size: 14px; margin-top: 15px; }
+        body { font-family: sans-serif; display: flex; justify-content: center; padding: 20px; background: #f4f7f6; }
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 100%; max-width: 350px; text-align: center; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
+        button { background: #1a73e8; color: white; border: none; padding: 12px; width: 100%; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        #status { color: #d93025; font-size: 14px; margin: 10px 0; }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <h2>Navigate to Spot</h2>
-        <input type="number" id="destLat" placeholder="Destination Latitude" step="any">
-        <input type="number" id="destLng" placeholder="Destination Longitude" step="any">
-        <button class="btn" onclick="startNavigation()">GET DIRECTIONS</button>
-        <p>Uses your current GPS as the start point.</p>
-    </div>
+<div class="card">
+    <h2>केंद्र लोकेटर</h2>
+    <input type="text" id="centerCode" placeholder="केंद्र कोड डालें (उदा: C101)">
+    <div id="status"></div>
+    <button onclick="findAndNavigate()">रास्ता देखें (GPS)</button>
+</div>
 
-    <script>
-        function startNavigation() {
-            const lat = document.getElementById('destLat').value.trim();
-            const lng = document.getElementById('destLng').value.trim();
+<script>
+    // अपनी गूगल शीट का CSV लिंक यहाँ पेस्ट करें
+    const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT3i5liXRYsyWCN2TFNcj8NUAN3lPHh0pO-bUdNQPuwmkvyLu339LkRrlcSephIGGWUnUwnWSJgwvjM/pub?output=csv";
 
-            if (lat && lng) {
-                // By not providing an 'origin', Google Maps uses your current GPS
-                // 'dir_action=navigate' launches turn-by-turn mode if possible
-                const routeUrl = "https://www.google.com/maps/dir/?api=1&destination=" + lat + "," + lng + "&travelmode=driving&dir_action=navigate";
-                
-                // Open in same tab to avoid 'about:blank#blocked' [Turn 6]
-                window.location.href = routeUrl;
-            } else {
-                alert("Please enter the destination coordinates first.");
+    async function findAndNavigate() {
+        const codeInput = document.getElementById('centerCode').value.trim().toUpperCase();
+        const status = document.getElementById('status');
+        status.innerText = "खोज रहे हैं...";
+
+        try {
+            const response = await fetch(sheetURL);
+            const data = await response.text();
+            const rows = data.split("\n");
+
+            let targetCoords = "";
+
+            // शीट में कोड सर्च करना
+            for (let i = 0; i < rows.length; i++) {
+                const cols = rows[i].split(",");
+                if (cols[0].trim().toUpperCase() === codeInput) {
+                    // अगर कोड मिल गया, तो कॉलम B से Lat/Long उठाएं
+                    targetCoords = cols[1].trim() + "," + cols[2].trim();
+                    break;
+                }
             }
+
+            if (targetCoords) {
+                status.innerText = "मिल गया! मैप खुल रहा है...";
+                status.style.color = "green";
+                // गूगल मैप्स नेविगेशन URL (Current location to target)
+                window.location.href = `https://google.com{targetCoords}&travelmode=driving`;
+            } else {
+                status.innerText = "कोड नहीं मिला। कृपया सही कोड डालें।";
+                status.style.color = "red";
+            }
+        } catch (error) {
+            status.innerText = "शीट लोड करने में समस्या आई।";
+            console.error(error);
         }
-    </script>
+    }
+</script>
 
 </body>
 </html>
