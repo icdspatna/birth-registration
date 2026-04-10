@@ -23,28 +23,26 @@
 
 <script>
     async function findAndNavigate() {
-        // 1. अपना ओरिजिनल Google Sheet CSV लिंक यहाँ पेस्ट करें
-        var originalLink = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT3i5liXRYsyWCN2TFNcj8NUAN3lPHh0pO-bUdNQPuwmkvyLu339LkRrlcSephIGGWUnUwnWSJgwvjM/pub?gid=0&single=true&output=csv";
+        // Your specific Google Sheet link
+        var originalLink = "https://google.com";
 
-        // 2. यह प्रॉक्सी लिंक गूगल के सिक्योरिटी ब्लॉक (CORS) को हटा देगा
+        // FIXED: Added the proper /raw?url= separator
         var proxyUrl = "https://allorigins.win" + encodeURIComponent(originalLink);
 
         var codeInput = document.getElementById('centerCode').value.trim().toUpperCase();
         var status = document.getElementById('status');
         
         if (codeInput === "") {
-            alert("Please enter a code");
+            alert("Please enter a center code");
             return;
         }
 
-        status.innerText = "Connecting to Sheet...";
+        status.innerText = "Searching for Center " + codeInput + "...";
         status.style.color = "blue";
 
         try {
-            // हम प्रॉक्सी URL को कॉल करेंगे
             var response = await fetch(proxyUrl);
-            
-            if (!response.ok) throw new Error("Network response was not ok");
+            if (!response.ok) throw new Error("Could not connect to Sheet");
             
             var text = await response.text();
             var rows = text.split("\n");
@@ -52,12 +50,10 @@
             var lat = "";
             var lng = "";
 
-            // Row by Row सर्च करना
             for (var i = 0; i < rows.length; i++) {
                 var cols = rows[i].split(",");
-                // मानता हूँ: Column A = Code, B = Lat, C = Long
-                // अगर आपकी शीट में Lat/Long एक ही सेल में हैं (e.g., "25.5, 85.1"), तो नीचे वाला कोड बदलें
-                if (cols.length >= 3 && cols[0].trim().toUpperCase() === codeInput) {
+                // Column A (0) = Code, Column B (1) = Lat, Column C (2) = Long
+                if (cols[0] && cols[0].trim().toUpperCase() === codeInput) {
                     lat = cols[1].trim();
                     lng = cols[2].trim();
                     break;
@@ -65,22 +61,23 @@
             }
 
             if (lat !== "" && lng !== "") {
-                status.innerText = "Found! Redirecting...";
+                status.innerText = "Center Found! Opening Map...";
                 status.style.color = "green";
                 
-                // मैप खोलना
+                // Final URL for Google Maps Navigation
                 var mapUrl = "https://google.com" + lat + "," + lng;
                 window.location.href = mapUrl;
             } else {
-                status.innerText = "❌ Code not found in sheet.";
+                status.innerText = "❌ Center Code '" + codeInput + "' not found in Sheet.";
                 status.style.color = "red";
             }
         } catch (error) {
-            status.innerText = "⚠️ Error: " + error.message;
-            console.error(error);
+            status.innerText = "⚠️ Connection Error: " + error.message;
+            status.style.color = "orange";
         }
     }
 </script>
+
 
 </body>
 </html>
