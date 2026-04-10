@@ -34,33 +34,21 @@
             return;
         }
 
-        // 1. Your Sheet Link
-        const sheetLink = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTK3UMn0hlZmpM-CymOvERayPN9rh3xIoTC5J9yO7RyTna76hQofcBeQJlKAXYHS2Fov_YzsoBX8ltU/pub?output=csv";
-
-        // 2. Using CorsProxy.io (Very reliable alternative)
-        const proxyUrl = "https://corsproxy.io/?" + encodeURIComponent(sheetLink);
+        const sheetLink = "https://google.com";
+        const proxyUrl = "https://corsproxy.io?" + encodeURIComponent(sheetLink);
 
         status.innerText = "🔍 Connecting to Sheet...";
         status.style.color = "blue";
 
         try {
             const response = await fetch(proxyUrl);
-            if (!response.ok) throw new Error("Server unreachable");
-
             const csvData = await response.text();
-            
-            // Helpful Debug: See the first 50 characters of what we got
-            console.log("Data Received:", csvData.substring(0, 50));
-
             const rows = csvData.split("\n");
             let lat = "";
             let lng = "";
 
             for (let i = 0; i < rows.length; i++) {
-                // Split by comma and clean up spaces/quotes
                 const columns = rows[i].split(",").map(c => c.trim().replace(/^"|"$/g, ''));
-                
-                // Column 0 = Code, Column 1 = Lat, Column 2 = Long
                 if (columns[0] && columns[0].toUpperCase() === codeInput) {
                     lat = columns[1];
                     lng = columns[2];
@@ -69,23 +57,22 @@
             }
 
             if (lat && lng) {
-                status.innerText = "✅ Found! Opening Maps...";
+                status.innerText = "✅ Found! Starting Navigation...";
                 status.style.color = "green";
-                // This version starts navigation from "My Location" to your lat/lng
-            const mapUrl = "https://google.com" + lat + "," + lng + "&travelmode=driving";
-
+                
+                // FIXED: This opens the ROUTE from current location
+                const mapUrl = "https://google.com" + lat + "," + lng + "&travelmode=driving";
                 
                 setTimeout(() => {
                     window.location.href = mapUrl;
                 }, 800);
             } else {
-                status.innerText = `❌ Code '${codeInput}' not found in Sheet.`;
+                status.innerText = "❌ Code '" + codeInput + "' not found.";
                 status.style.color = "red";
             }
         } catch (error) {
-            status.innerText = "⚠️ Connection Failed. Check internet or Proxy.";
+            status.innerText = "⚠️ Connection Failed.";
             status.style.color = "orange";
-            console.error("Error:", error);
         }
     }
 </script>
