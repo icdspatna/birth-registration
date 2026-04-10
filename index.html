@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GPS Navigator Fix</title>
+    <title>Final GPS Fix</title>
     <style>
         body { font-family: sans-serif; display: flex; justify-content: center; padding: 40px; background: #eef2f5; }
         .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); width: 350px; text-align: center; }
@@ -15,17 +15,20 @@
 <body>
 
 <div class="card">
-    <h2>📍 केंद्र नेविगेटर</h2>
-    <input type="text" id="centerCode" placeholder="Enter Center Code">
+    <h2>📍 केंद्र नेविगेटर (Fixed)</h2>
+    <input type="text" id="centerCode" placeholder="Enter Center Code (e.g. 101)">
     <button onclick="findAndNavigate()">Get Directions</button>
     <div id="status"></div>
 </div>
 
 <script>
-    // 1. अपनी Google Sheet का CSV लिंक यहाँ डालें (Must start with https://)
-    var sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT3i5liXRYsyWCN2TFNcj8NUAN3lPHh0pO-bUdNQPuwmkvyLu339LkRrlcSephIGGWUnUwnWSJgwvjM/pub?output=csv";
-
     async function findAndNavigate() {
+        // 1. अपना ओरिजिनल Google Sheet CSV लिंक यहाँ पेस्ट करें
+        var originalLink = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT3i5liXRYsyWCN2TFNcj8NUAN3lPHh0pO-bUdNQPuwmkvyLu339LkRrlcSephIGGWUnUwnWSJgwvjM/pub?gid=0&single=true&output=csv";
+
+        // 2. यह प्रॉक्सी लिंक गूगल के सिक्योरिटी ब्लॉक (CORS) को हटा देगा
+        var proxyUrl = "https://allorigins.win" + encodeURIComponent(originalLink);
+
         var codeInput = document.getElementById('centerCode').value.trim().toUpperCase();
         var status = document.getElementById('status');
         
@@ -34,20 +37,27 @@
             return;
         }
 
-        status.innerText = "Searching Sheet...";
+        status.innerText = "Connecting to Sheet...";
+        status.style.color = "blue";
 
         try {
-            var response = await fetch(sheetURL);
+            // हम प्रॉक्सी URL को कॉल करेंगे
+            var response = await fetch(proxyUrl);
+            
+            if (!response.ok) throw new Error("Network response was not ok");
+            
             var text = await response.text();
             var rows = text.split("\n");
-
+            
             var lat = "";
             var lng = "";
 
+            // Row by Row सर्च करना
             for (var i = 0; i < rows.length; i++) {
                 var cols = rows[i].split(",");
-                // Column A = Code, B = Lat, C = Long
-                if (cols[0] && cols[0].trim().toUpperCase() === codeInput) {
+                // मानता हूँ: Column A = Code, B = Lat, C = Long
+                // अगर आपकी शीट में Lat/Long एक ही सेल में हैं (e.g., "25.5, 85.1"), तो नीचे वाला कोड बदलें
+                if (cols.length >= 3 && cols[0].trim().toUpperCase() === codeInput) {
                     lat = cols[1].trim();
                     lng = cols[2].trim();
                     break;
@@ -55,19 +65,19 @@
             }
 
             if (lat !== "" && lng !== "") {
-                status.innerText = "Redirecting...";
+                status.innerText = "Found! Redirecting...";
+                status.style.color = "green";
                 
-                // 2. THIS IS THE CRITICAL FIX:
-                // We use the most basic URL format possible to avoid DNS errors.
-                var finalUrl = "https://google.com" + lat + "," + lng;
-                
-                // Use replace to prevent the "blocked" or "broken" browser history
-                window.location.replace(finalUrl);
+                // मैप खोलना
+                var mapUrl = "https://google.com" + lat + "," + lng;
+                window.location.href = mapUrl;
             } else {
                 status.innerText = "❌ Code not found in sheet.";
+                status.style.color = "red";
             }
         } catch (error) {
-            status.innerText = "⚠️ Connection Error. Check Internet/Link.";
+            status.innerText = "⚠️ Error: " + error.message;
+            console.error(error);
         }
     }
 </script>
