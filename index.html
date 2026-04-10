@@ -1,43 +1,40 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Working Map Locator</title>
+    <title>GPS Route Connector</title>
     <style>
-        body { font-family: sans-serif; text-align: center; padding: 20px; background: #f9f9f9; }
-        .input-card { background: white; padding: 20px; border-radius: 8px; display: inline-block; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        input { padding: 10px; margin: 5px; width: 150px; border: 1px solid #ccc; border-radius: 4px; }
-        button { padding: 10px 20px; background: #4285F4; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        #mapFrame { width: 100%; max-width: 600px; height: 400px; border: 1px solid #ddd; margin-top: 20px; display: none; }
+        body { font-family: 'Segoe UI', sans-serif; text-align: center; padding: 40px; background: #f0f2f5; }
+        .card { background: white; padding: 25px; border-radius: 12px; display: inline-block; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 320px; }
+        input { width: 90%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; }
+        .nav-btn { background: #1a73e8; color: white; padding: 14px; width: 100%; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; }
+        .nav-btn:hover { background: #1765cc; }
+        p { color: #5f6368; font-size: 14px; margin-top: 15px; }
     </style>
 </head>
 <body>
 
-    <div class="input-card">
-        <h2>📍 Map Locator</h2>
-        <input type="text" id="lat" placeholder="Latitude">
-        <input type="text" id="lng" placeholder="Longitude">
-        <br><br>
-        <button onclick="updateMap()">SHOW MAP</button>
+    <div class="card">
+        <h2>Navigate to Spot</h2>
+        <input type="number" id="destLat" placeholder="Destination Latitude" step="any">
+        <input type="number" id="destLng" placeholder="Destination Longitude" step="any">
+        <button class="btn" onclick="startNavigation()">GET DIRECTIONS</button>
+        <p>Uses your current GPS as the start point.</p>
     </div>
 
-    <br>
-    <!-- Map displays here -->
-    <iframe id="mapFrame"></iframe>
-
     <script>
-        function updateMap() {
-            var latVal = document.getElementById('lat').value.trim();
-            var lngVal = document.getElementById('lng').value.trim();
-            var frame = document.getElementById('mapFrame');
+        function startNavigation() {
+            const lat = document.getElementById('destLat').value.trim();
+            const lng = document.getElementById('destLng').value.trim();
 
-            if (latVal && lngVal) {
-                // FIXED URL: Must start with https://maps. and use + for merging
-                var finalUrl = "https://maps.google.com/maps?q=" + latVal + "," + lngVal + "&output=embed";
+            if (lat && lng) {
+                // By not providing an 'origin', Google Maps uses your current GPS
+                // 'dir_action=navigate' launches turn-by-turn mode if possible
+                const routeUrl = "https://www.google.com/maps/dir/?api=1&destination=" + lat + "," + lng + "&travelmode=driving&dir_action=navigate";
                 
-                frame.src = finalUrl;
-                frame.style.display = "inline-block";
+                // Open in same tab to avoid 'about:blank#blocked' [Turn 6]
+                window.location.href = routeUrl;
             } else {
-                alert("Please enter both coordinates!");
+                alert("Please enter the destination coordinates first.");
             }
         }
     </script>
