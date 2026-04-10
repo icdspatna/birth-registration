@@ -3,61 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Center Locator</title>
+    <title>Center Route Finder</title>
     <style>
-        body { font-family: sans-serif; display: flex; justify-content: center; padding: 20px; background: #f4f7f6; }
-        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 100%; max-width: 350px; text-align: center; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
-        button { background: #1a73e8; color: white; border: none; padding: 12px; width: 100%; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        #status { color: #d93025; font-size: 14px; margin: 10px 0; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); width: 350px; text-align: center; }
+        input { width: 100%; padding: 12px; margin-bottom: 15px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
+        button { background: #1a73e8; color: white; border: none; padding: 14px; width: 100%; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; }
+        #status { margin-top: 10px; font-size: 14px; min-height: 20px; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2>केंद्र लोकेटर</h2>
-    <input type="text" id="centerCode" placeholder="केंद्र कोड डालें (उदा: C101)">
+    <h2>📍 केंद्र नेविगेटर</h2>
+    <input type="text" id="centerCode" placeholder="केंद्र कोड डालें">
+    <button onclick="findAndNavigate()">नेविगेशन शुरू करें</button>
     <div id="status"></div>
-    <button onclick="findAndNavigate()">रास्ता देखें (GPS)</button>
 </div>
 
 <script>
-    // अपनी गूगल शीट का CSV लिंक यहाँ पेस्ट करें
+    // अपनी गूगल शीट का 'Publish to Web' CSV लिंक यहाँ डालें
     const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT3i5liXRYsyWCN2TFNcj8NUAN3lPHh0pO-bUdNQPuwmkvyLu339LkRrlcSephIGGWUnUwnWSJgwvjM/pub?output=csv";
 
     async function findAndNavigate() {
         const codeInput = document.getElementById('centerCode').value.trim().toUpperCase();
         const status = document.getElementById('status');
-        status.innerText = "खोज रहे हैं...";
+        
+        if(!codeInput) { alert("कृपया कोड डालें"); return; }
+        
+        status.innerText = "शीट से डेटा खोज रहे हैं...";
+        status.style.color = "blue";
 
         try {
             const response = await fetch(sheetURL);
             const data = await response.text();
             const rows = data.split("\n");
 
-            let targetCoords = "";
+            let targetLatLong = "";
 
-            // शीट में कोड सर्च करना
             for (let i = 0; i < rows.length; i++) {
-                const cols = rows[i].split(",");
+                const cols = rows[i].split(","); // Column A = Code, Column B = Lat, Column C = Long
                 if (cols[0].trim().toUpperCase() === codeInput) {
-                    // अगर कोड मिल गया, तो कॉलम B से Lat/Long उठाएं
-                    targetCoords = cols[1].trim() + "," + cols[2].trim();
+                    // अगर Lat और Long अलग-अलग कॉलम (B और C) में हैं:
+                    targetLatLong = cols[1].trim() + "," + cols[2].trim();
                     break;
                 }
             }
 
-            if (targetCoords) {
-                status.innerText = "मिल गया! मैप खुल रहा है...";
+            if (targetLatLong) {
+                status.innerText = "कोड मिल गया! रास्ता खोल रहे हैं...";
                 status.style.color = "green";
-                // गूगल मैप्स नेविगेशन URL (Current location to target)
-                window.location.href = `https://google.com{targetCoords}&travelmode=driving`;
+
+                // ध्यान दें: यहाँ "https://" और "backticks" का सही इस्तेमाल किया गया है
+                const finalMapUrl = `https://google.com{targetLatLong}&travelmode=driving`;
+                
+                window.location.href = finalMapUrl;
             } else {
-                status.innerText = "कोड नहीं मिला। कृपया सही कोड डालें।";
+                status.innerText = "❌ यह कोड शीट में नहीं मिला।";
                 status.style.color = "red";
             }
         } catch (error) {
-            status.innerText = "शीट लोड करने में समस्या आई।";
+            status.innerText = "⚠️ शीट लोड करने में एरर। लिंक चेक करें।";
             console.error(error);
         }
     }
