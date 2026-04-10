@@ -59,11 +59,11 @@
                 
                 // एकदम सुरक्षित URL बनाने का तरीका
                 var baseUrl = "https://google.com";
-                var destination = "&destination=" + lat + "," + lng;
+                var params = "&destination=" + lat + "," + lng + "&travelmode=driving";
                 var mode = "&travelmode=driving";
                 
                 // बिना किसी गलती के पेज को Redirect करना
-                window.location.href = baseUrl + destination + mode;
+               window.location.href = baseUrl + params;
             } else {
                 status.innerText = "❌ यह कोड शीट में नहीं मिला।";
             }
