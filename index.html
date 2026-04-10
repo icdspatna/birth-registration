@@ -3,135 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Google Maps Coordinator</title>
+    <title>Embedded Map Viewer</title>
     <style>
-        /* CSS: Makes the page look clean and modern */
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #eef2f5;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-
-        .card {
-            background: white;
-            padding: 40px;
-            border-radius: 15px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            width: 100%;
-            max-width: 350px;
-            text-align: center;
-        }
-
-        h2 {
-            color: #202124;
-            margin-bottom: 25px;
-            font-weight: 600;
-        }
-
-        .input-group {
-            margin-bottom: 20px;
-            text-align: left;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-size: 0.9rem;
-            color: #5f6368;
-            font-weight: 500;
-        }
-
-        input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #dadce0;
-            border-radius: 8px;
-            box-sizing: border-box;
-            font-size: 1rem;
-            transition: border 0.2s;
-            outline: none;
-        }
-
-        input:focus {
-            border-color: #4285F4;
-            box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.2);
-        }
-
-        /* This is an <a> tag styled to look exactly like a button */
-        .map-btn {
-            display: inline-block;
-            background-color: #4285F4;
-            color: white;
-            text-decoration: none; /* Removes underline */
-            padding: 14px;
-            width: 100%;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 500;
-            box-sizing: border-box;
-            cursor: pointer;
-            transition: background-color 0.3s, opacity 0.3s;
-            border: none;
-        }
-
-        .map-btn:hover {
-            background-color: #3367d6;
-        }
-
-        /* Style for when the button is disabled */
-        .map-btn.disabled {
-            background-color: #a8c7fa;
-            cursor: not-allowed;
-            pointer-events: none; /* Prevents clicking */
-        }
+        body { font-family: sans-serif; text-align: center; padding: 20px; }
+        .inputs { margin-bottom: 20px; }
+        input { padding: 10px; margin: 5px; width: 150px; }
+        button { padding: 10px 20px; background: #007bff; color: white; border: none; cursor: pointer; }
+        iframe { width: 100%; max-width: 600px; height: 450px; border: 0; display: none; margin-top: 20px; box-shadow: 0 0 15px rgba(0,0,0,0.2); }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <h2>📍 Map Locator</h2>
-        
-        <div class="input-group">
-            <label for="latitude">Latitude</label>
-            <!-- 'step="any"' allows decimals -->
-            <input type="number" id="latitude" placeholder="e.g. 40.7128" step="any" oninput="updateLink()">
-        </div>
-
-        <div class="input-group">
-            <label for="longitude">Longitude</label>
-            <input type="number" id="longitude" placeholder="e.g. -74.0060" step="any" oninput="updateLink()">
-        </div>
-
-        <!-- The Link Button -->
-        <a id="mapLink" class="map-btn disabled" href="#" target="_blank">
-            Open Google Maps
-        </a>
+    <div class="inputs">
+        <input type="number" id="lat" placeholder="Latitude">
+        <input type="number" id="lng" placeholder="Longitude">
+        <button onclick="showMap()">Show Map Here</button>
     </div>
 
-    <script>
-        // JavaScript Logic
-        function updateLink() {
-            // 1. Get the input elements and values
-            const latInput = document.getElementById('latitude').value.trim();
-            const lngInput = document.getElementById('longitude').value.trim();
-            const linkBtn = document.getElementById('mapLink');
+    <!-- This is the window that will show the map -->
+    <iframe id="mapFrame" allowfullscreen></iframe>
 
-            // 2. Check if both boxes have text
-            if (latInput && lngInput) {
-                // Enable the button
-                linkBtn.classList.remove('disabled');
-                
-                // Update the link's destination (href)
-                // We use the 'query' parameter which is safer than 'q' for search URLs
-                linkBtn.href = `https://google.com{latInput},${lngInput}`;
+    <script>
+        function showMap() {
+            const lat = document.getElementById('lat').value;
+            const lng = document.getElementById('lng').value;
+            const frame = document.getElementById('mapFrame');
+
+            if (lat && lng) {
+                // Uses Google's Embed API structure
+                // Note: Sometimes Google limits embeds without an API key, 
+                // but this format often works for testing.
+                frame.src = `https://google.com{lat},${lng}&hl=es;z=14&output=embed`;
+                frame.style.display = "inline-block";
             } else {
-                // Disable the button if inputs are empty
-                linkBtn.classList.add('disabled');
-                linkBtn.href = "#";
+                alert("Enter coordinates!");
             }
         }
     </script>
