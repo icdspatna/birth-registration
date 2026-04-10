@@ -71,7 +71,9 @@
             if (lat && lng) {
                 status.innerText = "✅ Found! Opening Maps...";
                 status.style.color = "green";
-                const mapUrl = `https://google.com{lat},${lng}`;
+                // This version starts navigation from "My Location" to your lat/lng
+            const mapUrl = "https://google.com" + lat + "," + lng + "&travelmode=driving";
+
                 
                 setTimeout(() => {
                     window.location.href = mapUrl;
