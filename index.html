@@ -3,68 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Center Route Finder</title>
+    <title>Perfect GPS Navigator</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        body { font-family: sans-serif; display: flex; justify-content: center; padding: 40px; background: #eef2f5; }
         .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); width: 350px; text-align: center; }
-        input { width: 100%; padding: 12px; margin-bottom: 15px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
-        button { background: #1a73e8; color: white; border: none; padding: 14px; width: 100%; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; }
-        #status { margin-top: 10px; font-size: 14px; min-height: 20px; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 2px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
+        button { background: #1a73e8; color: white; border: none; padding: 14px; width: 100%; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; }
+        #status { margin-top: 15px; color: #666; font-size: 14px; min-height: 20px; }
     </style>
 </head>
 <body>
 
 <div class="card">
     <h2>📍 केंद्र नेविगेटर</h2>
-    <input type="text" id="centerCode" placeholder="केंद्र कोड डालें">
-    <button onclick="findAndNavigate()">नेविगेशन शुरू करें</button>
+    <input type="text" id="centerCode" placeholder="यहाँ केंद्र कोड लिखें">
+    <button onclick="findAndNavigate()">रास्ता देखें</button>
     <div id="status"></div>
 </div>
 
 <script>
-    // अपनी गूगल शीट का 'Publish to Web' CSV लिंक यहाँ डालें
-    const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT3i5liXRYsyWCN2TFNcj8NUAN3lPHh0pO-bUdNQPuwmkvyLu339LkRrlcSephIGGWUnUwnWSJgwvjM/pub?output=csv";
+    // यहाँ अपनी गूगल शीट का CSV लिंक डालें
+    var sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT3i5liXRYsyWCN2TFNcj8NUAN3lPHh0pO-bUdNQPuwmkvyLu339LkRrlcSephIGGWUnUwnWSJgwvjM/pub?output=csv";
 
     async function findAndNavigate() {
-        const codeInput = document.getElementById('centerCode').value.trim().toUpperCase();
-        const status = document.getElementById('status');
+        var codeInput = document.getElementById('centerCode').value.trim().toUpperCase();
+        var status = document.getElementById('status');
         
-        if(!codeInput) { alert("कृपया कोड डालें"); return; }
-        
-        status.innerText = "शीट से डेटा खोज रहे हैं...";
-        status.style.color = "blue";
+        if (codeInput === "") {
+            alert("कृपया केंद्र कोड भरें");
+            return;
+        }
+
+        status.innerText = "शीट में खोज रहे हैं...";
 
         try {
-            const response = await fetch(sheetURL);
-            const data = await response.text();
-            const rows = data.split("\n");
+            var response = await fetch(sheetURL);
+            var text = await response.text();
+            var rows = text.split("\n");
 
-            let targetLatLong = "";
+            var lat = "";
+            var lng = "";
 
-            for (let i = 0; i < rows.length; i++) {
-                const cols = rows[i].split(","); // Column A = Code, Column B = Lat, Column C = Long
-                if (cols[0].trim().toUpperCase() === codeInput) {
-                    // अगर Lat और Long अलग-अलग कॉलम (B और C) में हैं:
-                    targetLatLong = cols[1].trim() + "," + cols[2].trim();
+            for (var i = 0; i < rows.length; i++) {
+                var cols = rows[i].split(",");
+                // Column A = Code, B = Lat, C = Long
+                if (cols[0] && cols[0].trim().toUpperCase() === codeInput) {
+                    lat = cols[1].trim();
+                    lng = cols[2].trim();
                     break;
                 }
             }
 
-            if (targetLatLong) {
-                status.innerText = "कोड मिल गया! रास्ता खोल रहे हैं...";
-                status.style.color = "green";
-
-                // ध्यान दें: यहाँ "https://" और "backticks" का सही इस्तेमाल किया गया है
-                const finalMapUrl = `https://https://www.google.com{targetLatLong}&travelmode=driving`;
+            if (lat !== "" && lng !== "") {
+                status.innerText = "मिल गया! गूगल मैप खुल रहा है...";
                 
-                window.location.href = finalMapUrl;
+                // एकदम सुरक्षित URL बनाने का तरीका
+                var baseUrl = "https://google.com";
+                var destination = "&destination=" + lat + "," + lng;
+                var mode = "&travelmode=driving";
+                
+                // बिना किसी गलती के पेज को Redirect करना
+                window.location.href = baseUrl + destination + mode;
             } else {
                 status.innerText = "❌ यह कोड शीट में नहीं मिला।";
-                status.style.color = "red";
             }
         } catch (error) {
-            status.innerText = "⚠️ शीट लोड करने में एरर। लिंक चेक करें।";
-            console.error(error);
+            status.innerText = "⚠️ शीट लोड नहीं हुई। इंटरनेट या लिंक चेक करें।";
         }
     }
 </script>
