@@ -1,83 +1,89 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Final GPS Fix</title>
+    <title>GPS Center Navigator</title>
     <style>
-        body { font-family: sans-serif; display: flex; justify-content: center; padding: 40px; background: #eef2f5; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; display: flex; justify-content: center; padding: 40px; background: #f0f2f5; }
         .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); width: 350px; text-align: center; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border: 2px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
-        button { background: #1a73e8; color: white; border: none; padding: 14px; width: 100%; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; }
-        #status { margin-top: 15px; color: #666; font-size: 14px; min-height: 20px; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 2px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 16px; outline: none; }
+        input:focus { border-color: #1a73e8; }
+        button { background: #1a73e8; color: white; border: none; padding: 14px; width: 100%; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; margin-top: 10px; }
+        button:hover { background: #1557b0; }
+        #status { margin-top: 20px; color: #555; font-size: 14px; min-height: 20px; font-weight: 500; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2>📍 केंद्र नेविगेटर (Fixed)</h2>
-    <input type="text" id="centerCode" placeholder="Enter Center Code (e.g. 101)">
+    <h2>📍 Center Navigator</h2>
+    <p style="font-size: 13px; color: #666;">Enter Code to start GPS route</p>
+    <input type="text" id="centerCode" placeholder="Ex: C101, 502, etc.">
     <button onclick="findAndNavigate()">Get Directions</button>
     <div id="status"></div>
 </div>
 
 <script>
     async function findAndNavigate() {
-        // Your specific Google Sheet link
-        var originalLink = "https://google.com";
+        const codeInput = document.getElementById('centerCode').value.trim().toUpperCase();
+        const status = document.getElementById('status');
 
-        // FIXED: Added the proper /raw?url= separator
-        var proxyUrl = "https://allorigins.win" + encodeURIComponent(originalLink);
-
-        var codeInput = document.getElementById('centerCode').value.trim().toUpperCase();
-        var status = document.getElementById('status');
-        
-        if (codeInput === "") {
-            alert("Please enter a center code");
+        if (!codeInput) {
+            alert("Please enter a code");
             return;
         }
 
-        status.innerText = "Searching for Center " + codeInput + "...";
+        // YOUR ACTUAL GOOGLE SHEET LINK
+        const sheetLink = "https://google.com";
+
+        // THE PROXY URL (CRITICAL FIX: Added /raw?url=)
+        const proxyUrl = "https://allorigins.win" + encodeURIComponent(sheetLink);
+
+        status.innerText = "🔍 Fetching data from Sheet...";
         status.style.color = "blue";
 
         try {
-            var response = await fetch(proxyUrl);
-            if (!response.ok) throw new Error("Could not connect to Sheet");
-            
-            var text = await response.text();
-            var rows = text.split("\n");
-            
-            var lat = "";
-            var lng = "";
+            const response = await fetch(proxyUrl);
+            if (!response.ok) throw new Error("Network issue or broken link");
 
-            for (var i = 0; i < rows.length; i++) {
-                var cols = rows[i].split(",");
-                // Column A (0) = Code, Column B (1) = Lat, Column C (2) = Long
-                if (cols[0] && cols[0].trim().toUpperCase() === codeInput) {
-                    lat = cols[1].trim();
-                    lng = cols[2].trim();
+            const csvData = await response.text();
+            const rows = csvData.split("\n");
+
+            let lat = "";
+            let lng = "";
+
+            for (let i = 0; i < rows.length; i++) {
+                const columns = rows[i].split(",");
+                // Assuming: Column A = Code, B = Lat, C = Long
+                if (columns[0] && columns[0].trim().toUpperCase() === codeInput) {
+                    lat = columns[1].trim();
+                    lng = columns[2].trim();
                     break;
                 }
             }
 
-            if (lat !== "" && lng !== "") {
-                status.innerText = "Center Found! Opening Map...";
+            if (lat && lng) {
+                status.innerText = "✅ Found! Opening Google Maps...";
                 status.style.color = "green";
                 
-                // Final URL for Google Maps Navigation
-                var mapUrl = "https://google.com" + lat + "," + lng;
-                window.location.href = mapUrl;
+                // Final Navigation URL
+                const mapUrl = "https://google.com" + lat + "," + lng;
+                
+                // Small delay to let user see the "Found" message
+                setTimeout(() => {
+                    window.location.href = mapUrl;
+                }, 800);
             } else {
-                status.innerText = "❌ Center Code '" + codeInput + "' not found in Sheet.";
+                status.innerText = "❌ Code '" + codeInput + "' not found in your Sheet.";
                 status.style.color = "red";
             }
         } catch (error) {
-            status.innerText = "⚠️ Connection Error: " + error.message;
+            status.innerText = "⚠️ Error: " + error.message;
             status.style.color = "orange";
         }
     }
 </script>
-
 
 </body>
 </html>
