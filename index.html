@@ -21,60 +21,54 @@
     <div id="status"></div>
 </div>
 
-<script>
-    async function findAndNavigate() {
-        const codeInput = document.getElementById('centerCode').value.trim().toUpperCase();
-        const status = document.getElementById('status');
+async function findAndNavigate() {
+    const codeInput = document.getElementById('centerCode').value.trim().toUpperCase();
+    const status = document.getElementById('status');
 
-        if (!codeInput) {
-            alert("Please enter a code");
-            return;
+    if (!codeInput) {
+        alert("Please enter a code");
+        return;
+    }
+
+    const webAppUrl = "https://script.google.com/macros/s/AKfycbzHEfpbMVsbfn59TS5jqMRO79KamfurTyBiB0s_cNGpNdG4z8HcuTwlO7iowpsqNr7r/exec";
+
+    status.innerText = "🔍 Searching Google Sheets...";
+    status.style.color = "blue";
+
+    try {
+        const response = await fetch(webAppUrl);
+        const csvData = await response.text();
+        const rows = csvData.split("\n");
+        let lat = "", lng = "";
+
+        for (let i = 0; i < rows.length; i++) {
+            const columns = rows[i].split(",").map(c => c.trim().replace(/^"|"$/g, ''));
+            
+            // Check if Column A matches the Code
+            if (columns[0] && columns[0].toUpperCase() === codeInput) {
+                lat = columns[1];
+                lng = columns[2];
+                break;
+            }
         }
 
-        // PASTE YOUR GOOGLE WEB APP URL BELOW
-        const webAppUrl = "https://script.google.com/macros/s/AKfycbxwGwOlblhrmfs7VDUII-n9NAqdqUIFkOI3gyym-67t2bH7vICHFsrfN-Ea5Rjy7JIo/exec";
-
-        status.innerText = "🔍 Connecting to private proxy...";
-        status.style.color = "blue";
-
-        try {
-            const response = await fetch(webAppUrl);
-            if (!response.ok) throw new Error("Proxy error");
-
-            const csvData = await response.text();
-            const rows = csvData.split("\n");
-            let lat = "", lng = "";
-
-            // Replace the "for" loop in your script with this:
-for (let i = 0; i < rows.length; i++) {
-    const columns = rows[i].split(",").map(c => c.trim().replace(/^"|"$/g, ''));
-    
-    // This checks if Column A EXACTLY matches or CONTAINS your input
-    if (columns[0] && columns[0].toUpperCase() === codeInput) {
-        lat = columns[1];
-        lng = columns[2];
-        break;
+        if (lat && lng) {
+            status.innerText = "✅ Found! Opening Maps...";
+            status.style.color = "green";
+            // Correct Google Maps Directions URL
+            const mapUrl = `https://google.com{lat},${lng}`;
+            window.location.href = mapUrl;
+        } else {
+            status.innerText = `❌ Code '${codeInput}' not found in Sheet.`;
+            status.style.color = "red";
+        }
+    } catch (error) {
+        console.error(error);
+        status.innerText = "⚠️ Connection Error. Ensure Web App is 'Anyone'.";
+        status.style.color = "orange";
     }
 }
 
-                }
-            }
-
-            if (lat && lng) {
-                status.innerText = "✅ Found! Starting Navigation...";
-                status.style.color = "green";
-                const mapUrl = `https://google.com{lat},${lng}`;
-                window.location.href = mapUrl;
-            } else {
-                status.innerText = `❌ Code '${codeInput}' not found.`;
-                status.style.color = "red";
-            }
-        } catch (error) {
-            status.innerText = "⚠️ Connection Error. Ensure Web App is 'Anyone'.";
-            status.style.color = "orange";
-        }
-    }
-</script>
 
 
 </body>
