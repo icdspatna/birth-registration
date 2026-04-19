@@ -26,7 +26,7 @@
 <div class="container">
     <h2>📍 आंगनवाड़ी केंद्र मार्गदर्शिका</h2>
     
-    <input type="text" id="searchInput" class="search-box" placeholder="पंचायत, केंद्र या सेविका का नाम खोजें..." onkeyup="filterTable()">
+    <input type="text" id="searchInput" class="search-box" placeholder="खोजें (पंचायत, कोड, या नाम)..." onkeyup="filterTable()">
 
     <div class="table-wrapper">
         <table>
@@ -37,7 +37,7 @@
                     <th>सेविका</th>
                     <th>सहायिका</th>
                     <th>मोबाइल</th>
-                    <th>Lat/Lng</th>
+                    <th>लोकेशन (Lat, Lng)</th>
                     <th>कार्रवाई</th>
                 </tr>
             </thead>
@@ -45,7 +45,7 @@
         </table>
     </div>
 
-    <!-- पेज में ही मैप देखने का सेक्शन -->
+    <!-- Map Section -->
     <div id="mapSection">
         <div style="background:#075e54; color:white; padding:10px; display:flex; justify-content:space-between; align-items:center;">
             <span id="mapTitle">केंद्र की स्थिति</span>
@@ -57,14 +57,14 @@
 
 <script>
     const centers = [
-        { panchayat: "रामपुर", name: "AWC 01", code: "101", sevika: "सुनीता देवी", sahayika: "रीता वर्मा", mobile: "9876543210", lat: 25.5941, lng: 85.1376 },
-        { panchayat: "लक्ष्मणपुर", name: "AWC 05", code: "105", sevika: "मीना सिंह", sahayika: "शांति कुमारी", mobile: "9988776655", lat: 25.6126, lng: 85.1583 }
+        { panchayat: "रामपुर", name: "AWC रामपुर 01", code: "101", sevika: "सुनीता देवी", sahayika: "रीता वर्मा", mobile: "9876543210", lat: 25.5941, lng: 85.1376 },
+        { panchayat: "लक्ष्मणपुर", name: "AWC लक्ष्मणपुर 05", code: "105", sevika: "मीना सिंह", sahayika: "शांति कुमारी", mobile: "9988776655", lat: 25.6126, lng: 85.1583 }
     ];
 
     function render() {
         const tbody = document.getElementById('centerData');
-        tbody.innerHTML = centers.map(c => {
-            // गूगल मैप्स 'रास्ता देखें' लिंक
+        // We use 'index' to avoid passing broken strings into the function
+        tbody.innerHTML = centers.map((c, index) => {
             const navUrl = "https://google.com" + c.lat + "," + c.lng + "&travelmode=driving";
             
             return `
@@ -76,7 +76,8 @@
                     <td><a href="tel:${c.mobile}" style="color:#075e54; font-weight:bold; text-decoration:none;">${c.mobile}</a></td>
                     <td><span class="coords">${c.lat}, ${c.lng}</span></td>
                     <td>
-                        <button class="btn btn-map" onclick="viewMap(${c.lat}, ${c.lng}, '${c.name}')">यहीं देखें</button>
+                        <!-- Passing index is safer than passing name strings -->
+                        <button class="btn btn-map" onclick="viewMap(${index})">यहीं देखें</button>
                         <a href="${navUrl}" target="_blank" class="btn btn-nav">रास्ता देखें</a>
                     </td>
                 </tr>
@@ -84,18 +85,16 @@
         }).join('');
     }
 
-    // यहीं देखें (Mini Map) फंक्शन - फिक्स्ड URL के साथ
-    function viewMap(lat, lng, name) {
+    function viewMap(index) {
+        const center = centers[index]; // Get details from the data list using index
         const frame = document.getElementById('mapFrame');
         const section = document.getElementById('mapSection');
         
-        // फिक्स्ड एम्बेड URL (output=embed जोड़ना अनिवार्य है)
-        const embedUrl = "https://google.com" + lat + "," + lng;
-        // बिना API Key वाला तरीका (नीचे वाला लाइन उपयोग करें यदि API Key नहीं है)
-        const publicEmbedUrl = "https://google.com" + lat + "," + lng + "&hl=hi&z=15&output=embed";
+        // Corrected URL structure
+        const embedUrl = "https://google.com" + center.lat + "," + center.lng + "&hl=hi&z=15&output=embed";
         
-        frame.src = publicEmbedUrl;
-        document.getElementById('mapTitle').innerText = "केंद्र: " + name;
+        frame.src = embedUrl;
+        document.getElementById('mapTitle').innerText = "केंद्र: " + center.name;
         section.style.display = 'block';
         section.scrollIntoView({ behavior: 'smooth' });
     }
