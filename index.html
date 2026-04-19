@@ -3,121 +3,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>आंगनवाड़ी केंद्र ट्रैकर</title>
+    <title>आंगनवाड़ी केंद्र विवरण</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f9fa; padding: 15px; margin: 0; }
-        .container { max-width: 1100px; margin: auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
-        h2 { text-align: center; color: #1e88e5; margin-bottom: 25px; font-weight: 600; }
-        
-        .search-box { width: 100%; padding: 14px 20px; margin-bottom: 20px; border: 2px solid #e0e0e0; border-radius: 30px; font-size: 16px; outline: none; transition: 0.3s; box-sizing: border-box; }
-        .search-box:focus { border-color: #1e88e5; box-shadow: 0 0 8px rgba(30,136,229,0.2); }
-        
-        .table-wrapper { overflow-x: auto; border-radius: 8px; border: 1px solid #eee; }
-        table { width: 100%; border-collapse: collapse; min-width: 850px; }
-        th { background-color: #1e88e5; color: white; padding: 15px; text-align: left; }
-        td { padding: 14px 15px; border-bottom: 1px solid #f0f0f0; font-size: 14px; vertical-align: middle; }
-        tr:hover { background-color: #faffff; }
-        
-        .btn-group { display: flex; flex-direction: column; gap: 6px; }
-        .btn { border: none; padding: 8px 12px; cursor: pointer; border-radius: 6px; font-size: 13px; font-weight: 500; transition: 0.2s; text-align: center; text-decoration: none; }
-        .btn-view { background: #43a047; color: white; }
-        .btn-view:hover { background: #388e3c; }
-        .btn-nav { background: #1976d2; color: white; }
-        .btn-nav:hover { background: #1565c0; }
-        
-        #mapSection { display: none; margin-top: 30px; border: 2px solid #ddd; border-radius: 12px; overflow: hidden; }
-        .map-header { background: #333; color: white; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; }
+        .card { max-width: 1000px; margin: auto; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        input { width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
+        .table-container { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; min-width: 600px; }
+        th, td { border: 1px solid #eee; padding: 12px; text-align: left; }
+        th { background-color: #3498db; color: #fff; }
+        .action-btn { background: #27ae60; color: #fff; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; text-decoration: none; display: inline-block; font-size: 14px; margin: 2px; }
+        .action-btn:hover { background: #219150; }
+        #mapSection { margin-top: 20px; display: none; border: 2px solid #3498db; border-radius: 8px; overflow: hidden; }
         iframe { width: 100%; height: 450px; border: none; }
-        .close-btn { background: #e53935; color: white; border: none; padding: 5px 12px; border-radius: 4px; cursor: pointer; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>📍 आंगनवाड़ी केंद्र ट्रैकर</h2>
-    
-    <input type="text" id="searchInput" class="search-box" placeholder="पंचायत या केंद्र का नाम खोजें..." onkeyup="filterTable()">
+<div class="card">
+    <h2>📍 आंगनवाड़ी केंद्र मार्गदर्शिका</h2>
+    <input type="text" id="searchInput" onkeyup="filterTable()" placeholder="पंचायत या केंद्र खोजें...">
 
-    <div class="table-wrapper">
+    <div class="table-container">
         <table>
             <thead>
                 <tr>
                     <th>पंचायत</th>
-                    <th>केंद्र विवरण</th>
-                    <th>सेविका/सहायिका</th>
-                    <th>संपर्क</th>
-                    <th>रास्ता देखें</th>
+                    <th>केंद्र/कोड</th>
+                    <th>सेविका</th>
+                    <th>मोबाइल</th>
+                    <th>रास्ता</th>
                 </tr>
             </thead>
-            <tbody id="centerBody"></tbody>
+            <tbody id="centerTable">
+                <!-- डेटा यहाँ लोड होगा -->
+            </tbody>
         </table>
     </div>
 
-    <!-- Map Preview Box -->
+    <!-- मैप दिखाने की जगह -->
     <div id="mapSection">
-        <div class="map-header">
-            <span id="centerTitle">केंद्र का स्थान</span>
-            <button class="close-btn" onclick="hideMap()">बंद करें ×</button>
+        <div style="background:#3498db; color:white; padding:10px; display:flex; justify-content:space-between;">
+            <span id="mapTitle">लोकेशन</span>
+            <button onclick="document.getElementById('mapSection').style.display='none'" style="background:red; color:white; border:none; cursor:pointer;">बंद करें</button>
         </div>
-        <iframe id="mapFrame" src=""></iframe>
+        <iframe id="mainMap" src=""></iframe>
     </div>
 </div>
 
 <script>
-    // केंद्र डेटा लिस्ट (Data List)
     const centers = [
-        { panchayat: "रामपुर", name: "केंद्र 01", code: "AWC-101", sevika: "सुनीता देवी", sahayika: "रीता", mobile: "9876543210", lat: 25.5941, lng: 85.1376 },
-        { panchayat: "लक्ष्मणपुर", name: "केंद्र 05", code: "AWC-105", sevika: "मीना सिंह", sahayika: "गीता", mobile: "9988776655", lat: 25.6126, lng: 85.1583 },
-        { panchayat: "बिहटा", name: "केंद्र 12", code: "AWC-112", sevika: "अंजली कुमारी", sahayika: "पूनम", mobile: "8877665544", lat: 25.5615, lng: 84.8715 }
+        { pan: "रामपुर", name: "AWC 01", code: "101", sevika: "सुनीता देवी", mob: "9876543210", lat: 25.5941, lng: 85.1376 },
+        { pan: "लक्ष्मणपुर", name: "AWC 05", code: "105", sevika: "मीना सिंह", mob: "9988776655", lat: 25.6126, lng: 85.1583 },
+        { pan: "बिहटा", name: "AWC 12", code: "112", sevika: "अंजली कुमारी", mob: "8877665544", lat: 25.5615, lng: 84.8715 }
     ];
 
-    function renderTable() {
-        const body = document.getElementById('centerBody');
-        body.innerHTML = centers.map(c => `
+    function loadData() {
+        const tbody = document.getElementById('centerTable');
+        tbody.innerHTML = centers.map(c => `
             <tr>
-                <td><b>${c.panchayat}</b></td>
-                <td>${c.name}<br><small style="color:#666">कोड: ${c.code}</small></td>
-                <td>S: ${c.sevika}<br><small>H: ${c.sahayika}</small></td>
-                <td><a href="tel:${c.mobile}" style="color:#1e88e5; text-decoration:none">${c.mobile}</a></td>
+                <td>${c.pan}</td>
+                <td>${c.name}<br><small>${c.code}</small></td>
+                <td>${c.sevika}</td>
+                <td><a href="tel:${c.mob}">${c.mob}</a></td>
                 <td>
-                    <div class="btn-group">
-                        <button class="btn btn-view" onclick="showOnPage(${c.lat}, ${c.lng}, '${c.name}')">यहाँ देखें</button>
-                        <a class="btn btn-nav" href="https://google.com{c.lat},${c.lng}" target="_blank">रास्ता नेविगेट</a>
-                    </div>
+                    <button class="action-btn" onclick="showMap(${c.lat}, ${c.lng}, '${c.name}')">यहाँ देखें</button>
+                    <button class="action-btn" style="background:#2980b9" onclick="openNav(${c.lat}, ${c.lng})">गूगल मैप</button>
                 </td>
             </tr>
         `).join('');
     }
 
-    // १. इसी पेज पर नक्शा लोड करने के लिए (Corrected Embed URL)
-    function showOnPage(lat, lng, name) {
-        const mapSection = document.getElementById('mapSection');
-        const frame = document.getElementById('mapFrame');
-        document.getElementById('centerTitle').innerText = "केंद्र का स्थान: " + name;
-        
-        // Fixed URL syntax: Added "/" after google.com
-        const embedUrl = "https://google.com" + lat + "," + lng + "&hl=hi&z=15&output=embed";
-        
-        frame.src = embedUrl;
-        mapSection.style.display = 'block';
-        mapSection.scrollIntoView({ behavior: 'smooth' });
+    // १. इसी पेज में मैप लोड करने का सही तरीका (Embed Map)
+    function showMap(lat, lng, name) {
+        document.getElementById('mapSection').style.display = 'block';
+        document.getElementById('mapTitle').innerText = "स्थान: " + name;
+        // ध्यान दें: "google.com/maps" के बीच "/" होना अनिवार्य है
+        const embedUrl = "https://google.com" + lat + "," + lng + "&hl=hi&z=14&output=embed";
+        document.getElementById('mainMap').src = embedUrl;
+        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
     }
 
-    function hideMap() {
-        document.getElementById('mapSection').style.display = 'none';
-        document.getElementById('mapFrame').src = "";
+    // २. नेविगेशन के लिए गूगल मैप ऐप खोलने का सही तरीका (Directions)
+    function openNav(lat, lng) {
+        const navUrl = "https://google.com" + lat + "," + lng;
+        window.open(navUrl, '_blank');
     }
 
-    // २. सर्च फीचर
     function filterTable() {
-        const query = document.getElementById("searchInput").value.toLowerCase();
-        const rows = document.querySelectorAll("#centerBody tr");
-        rows.forEach(row => {
-            row.style.display = row.innerText.toLowerCase().includes(query) ? "" : "none";
-        });
+        let val = document.getElementById("searchInput").value.toLowerCase();
+        let rows = document.querySelectorAll("#centerTable tr");
+        rows.forEach(r => r.style.display = r.innerText.toLowerCase().includes(val) ? "" : "none");
     }
 
-    window.onload = renderTable;
+    window.onload = loadData;
 </script>
 
 </body>
