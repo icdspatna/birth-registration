@@ -43,9 +43,9 @@
     </div>
 
     <div id="mapSection">
-        <div style="background:#075e54; color:white; padding:10px; display:flex; justify-content:space-between;">
+        <div style="background:#075e54; color:white; padding:10px; display:flex; justify-content:space-between; align-items:center;">
             <span id="mapTitle">लोकेशन</span>
-            <button onclick="document.getElementById('mapSection').style.display='none'" style="background:red; color:white; border:none; cursor:pointer; padding: 5px 10px;">बंद करें ×</button>
+            <button onclick="document.getElementById('mapSection').style.display='none'" style="background:red; color:white; border:none; cursor:pointer; padding: 5px 10px; border-radius: 4px;">बंद करें ×</button>
         </div>
         <iframe id="mapFrame" src=""></iframe>
     </div>
@@ -64,42 +64,40 @@
                 <td>${c.panchayat}</td>
                 <td>${c.name}</td>
                 <td>${c.sevika}</td>
-                <td><a href="tel:${c.mobile}">${c.mobile}</a></td>
+                <td><a href="tel:${c.mobile}" style="color:#075e54; font-weight:bold;">${c.mobile}</a></td>
                 <td>
                     <button class="btn btn-map" onclick="viewMap(${c.lat}, ${c.lng}, '${c.name}')">यहीं देखें</button>
-                    
-                    <!-- Fixed Navigation Button: Removed <a> tag to avoid blocking -->
-                    <button class="btn btn-nav" onclick="launchNavigation(${c.lat}, ${c.lng})">रास्ता देखें</button>
-                    
+                    <!-- JavaScript Navigation to prevent blocking -->
+                    <button class="btn btn-nav" onclick="goNav(${c.lat}, ${c.lng})">रास्ता देखें</button>
                     <button class="btn btn-wa" onclick="shareWA('${c.name}', ${c.lat}, ${c.lng})">शेयर</button>
                 </td>
             </tr>
         `).join('');
     }
 
-    // १. नेविगेशन लॉन्च करने का पक्का तरीका (No "about:blank#blocked")
-    function launchNavigation(lat, lng) {
-        // यह URL सीधे गूगल मैप्स ऐप को ट्रिगर करता है
-        const navUrl = "https://google.com" + lat + "," + lng + "&travelmode=driving";
-        
-        // _self का उपयोग करने से ब्राउज़र इसे ब्लॉक नहीं करता
-        window.location.href = navUrl;
+    // १. नेविगेशन के लिए पक्का तरीका (No more blocked error)
+    function goNav(lat, lng) {
+        const url = "https://google.com" + lat + "," + lng + "&travelmode=driving";
+        // window.location.href पॉप-अप ब्लॉकर को बायपास करता है
+        window.location.href = url;
     }
 
     // २. मिनी मैप लोड करना
     function viewMap(lat, lng, name) {
         const frame = document.getElementById('mapFrame');
-        const embedUrl = "https://google.com" + lat + "," + lng + "&hl=hi&z=15&output=embed";
+        const section = document.getElementById('mapSection');
+        // Correct URL structure with slash and ?q=
+        const embedUrl = "https://www.google.com/maps?q=" + lat + "," + lng + "&hl=hi&z=15&output=embed";
         frame.src = embedUrl;
         document.getElementById('mapTitle').innerText = name;
-        document.getElementById('mapSection').style.display = 'block';
-        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        section.style.display = 'block';
+        section.scrollIntoView({ behavior: 'smooth' });
     }
 
     // ३. व्हाट्सएप शेयर
     function shareWA(name, lat, lng) {
-        const mapUrl = "https://google.com" + lat + "," + lng;
-        const text = encodeURIComponent("केंद्र: " + name + "\nरास्ता यहाँ देखें: " + mapUrl);
+        const mapUrl = "https://www.google.com/maps?q=" + lat + "," + lng;
+        const text = encodeURIComponent("केंद्र: " + name + "\nरास्ता: " + mapUrl);
         window.location.href = "https://whatsapp.com" + text;
     }
 
