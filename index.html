@@ -13,7 +13,7 @@
         table { width: 100%; border-collapse: collapse; min-width: 800px; }
         th { background-color: #075e54; color: white; padding: 12px; text-align: left; }
         td { padding: 12px; border-bottom: 1px solid #eee; font-size: 14px; }
-        .btn { border: none; padding: 8px 12px; cursor: pointer; border-radius: 5px; font-size: 13px; text-decoration: none; color: white; display: inline-block; margin: 2px; }
+        .btn { border: none; padding: 10px 14px; cursor: pointer; border-radius: 5px; font-size: 13px; text-decoration: none; color: white; display: inline-block; margin: 2px; font-weight: bold; }
         .btn-map { background: #128c7e; }
         .btn-wa { background: #25d366; }
         .btn-nav { background: #34b7f1; }
@@ -45,7 +45,7 @@
     <div id="mapSection">
         <div style="background:#075e54; color:white; padding:10px; display:flex; justify-content:space-between;">
             <span id="mapTitle">लोकेशन</span>
-            <button onclick="document.getElementById('mapSection').style.display='none'" style="background:red; color:white; border:none; cursor:pointer;">बंद करें</button>
+            <button onclick="document.getElementById('mapSection').style.display='none'" style="background:red; color:white; border:none; cursor:pointer; padding: 5px 10px;">बंद करें ×</button>
         </div>
         <iframe id="mapFrame" src=""></iframe>
     </div>
@@ -59,39 +59,48 @@
 
     function render() {
         const tbody = document.getElementById('centerData');
-        tbody.innerHTML = centers.map(c => {
-            // करेंट लोकेशन से रास्ता दिखाने के लिए प्रॉपर URL
-            const directionsUrl = `https://google.com{c.lat},${c.lng}&travelmode=driving`;
-            
-            return `
-                <tr>
-                    <td>${c.panchayat}</td>
-                    <td>${c.name}</td>
-                    <td>${c.sevika}</td>
-                    <td>${c.mobile}</td>
-                    <td>
-                        <button class="btn btn-map" onclick="viewMap(${c.lat}, ${c.lng}, '${c.name}')">मैप देखें</button>
-                        <button class="btn btn-wa" onclick="shareWA('${c.name}', ${c.lat}, ${c.lng})">शेयर</button>
-                        <!-- अपडेटेड बटन: target="_self" ताकि ब्लॉक न हो और गूगल मैप्स ऐप खुले -->
-                        <a class="btn btn-nav" href="${directionsUrl}" target="_self">रास्ता देखें</a>
-                    </td>
-                </tr>
-            `;
-        }).join('');
+        tbody.innerHTML = centers.map(c => `
+            <tr>
+                <td>${c.panchayat}</td>
+                <td>${c.name}</td>
+                <td>${c.sevika}</td>
+                <td><a href="tel:${c.mobile}">${c.mobile}</a></td>
+                <td>
+                    <button class="btn btn-map" onclick="viewMap(${c.lat}, ${c.lng}, '${c.name}')">यहीं देखें</button>
+                    
+                    <!-- Fixed Navigation Button: Removed <a> tag to avoid blocking -->
+                    <button class="btn btn-nav" onclick="launchNavigation(${c.lat}, ${c.lng})">रास्ता देखें</button>
+                    
+                    <button class="btn btn-wa" onclick="shareWA('${c.name}', ${c.lat}, ${c.lng})">शेयर</button>
+                </td>
+            </tr>
+        `).join('');
     }
 
+    // १. नेविगेशन लॉन्च करने का पक्का तरीका (No "about:blank#blocked")
+    function launchNavigation(lat, lng) {
+        // यह URL सीधे गूगल मैप्स ऐप को ट्रिगर करता है
+        const navUrl = "https://google.com" + lat + "," + lng + "&travelmode=driving";
+        
+        // _self का उपयोग करने से ब्राउज़र इसे ब्लॉक नहीं करता
+        window.location.href = navUrl;
+    }
+
+    // २. मिनी मैप लोड करना
     function viewMap(lat, lng, name) {
         const frame = document.getElementById('mapFrame');
-        const embedUrl = "https://www.google.com/maps?q=" + lat + "," + lng + "&hl=hi&z=15&output=embed";
+        const embedUrl = "https://google.com" + lat + "," + lng + "&hl=hi&z=15&output=embed";
         frame.src = embedUrl;
         document.getElementById('mapTitle').innerText = name;
         document.getElementById('mapSection').style.display = 'block';
+        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
     }
 
+    // ३. व्हाट्सएप शेयर
     function shareWA(name, lat, lng) {
-        const mapUrl = "https://www.google.com/maps?q=" + lat + "," + lng;
-        const text = encodeURIComponent("केंद्र: " + name + "\nरास्ता: " + mapUrl);
-        window.open("https://whatsapp.com" + text, "_blank");
+        const mapUrl = "https://google.com" + lat + "," + lng;
+        const text = encodeURIComponent("केंद्र: " + name + "\nरास्ता यहाँ देखें: " + mapUrl);
+        window.location.href = "https://whatsapp.com" + text;
     }
 
     function filterTable() {
