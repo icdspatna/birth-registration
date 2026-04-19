@@ -3,24 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>आंगनवाड़ी केंद्र - मैप और व्हाट्सएप</title>
+    <title>आंगनवाड़ी केंद्र - लाइव रास्ता</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; padding: 15px; margin: 0; }
         .container { max-width: 1000px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         h2 { text-align: center; color: #075e54; }
-        
         .search-box { width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
-        
         .table-wrapper { overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; min-width: 800px; }
         th { background-color: #075e54; color: white; padding: 12px; text-align: left; }
         td { padding: 12px; border-bottom: 1px solid #eee; font-size: 14px; }
-        
         .btn { border: none; padding: 8px 12px; cursor: pointer; border-radius: 5px; font-size: 13px; text-decoration: none; color: white; display: inline-block; margin: 2px; }
         .btn-map { background: #128c7e; }
         .btn-wa { background: #25d366; }
         .btn-nav { background: #34b7f1; }
-
         #mapSection { display: none; margin-top: 20px; border: 2px solid #075e54; border-radius: 10px; overflow: hidden; }
         iframe { width: 100%; height: 400px; border: none; }
     </style>
@@ -29,7 +25,6 @@
 
 <div class="container">
     <h2>📍 केंद्र विवरण और शेयरिंग</h2>
-    
     <input type="text" id="searchInput" class="search-box" placeholder="पंचायत या केंद्र का नाम खोजें..." onkeyup="filterTable()">
 
     <div class="table-wrapper">
@@ -64,35 +59,38 @@
 
     function render() {
         const tbody = document.getElementById('centerData');
-        tbody.innerHTML = centers.map(c => `
-            <tr>
-                <td>${c.panchayat}</td>
-                <td>${c.name}</td>
-                <td>${c.sevika}</td>
-                <td>${c.mobile}</td>
-                <td>
-                    <button class="btn btn-map" onclick="viewMap(${c.lat}, ${c.lng}, '${c.name}')">मैप देखें</button>
-                    <button class="btn btn-wa" onclick="shareWA('${c.name}', ${c.lat}, ${c.lng})">व्हाट्सएप शेयर</button>
-                    <a class="btn btn-nav" href="https://google.com{c.lat},${c.lng}" target="_blank">रास्ता देखें</a>
-                </td>
-            </tr>
-        `).join('');
+        tbody.innerHTML = centers.map(c => {
+            // करेंट लोकेशन से रास्ता दिखाने के लिए प्रॉपर URL
+            const directionsUrl = `https://google.com{c.lat},${c.lng}&travelmode=driving`;
+            
+            return `
+                <tr>
+                    <td>${c.panchayat}</td>
+                    <td>${c.name}</td>
+                    <td>${c.sevika}</td>
+                    <td>${c.mobile}</td>
+                    <td>
+                        <button class="btn btn-map" onclick="viewMap(${c.lat}, ${c.lng}, '${c.name}')">मैप देखें</button>
+                        <button class="btn btn-wa" onclick="shareWA('${c.name}', ${c.lat}, ${c.lng})">शेयर</button>
+                        <!-- अपडेटेड बटन: target="_self" ताकि ब्लॉक न हो और गूगल मैप्स ऐप खुले -->
+                        <a class="btn btn-nav" href="${directionsUrl}" target="_self">रास्ता देखें</a>
+                    </td>
+                </tr>
+            `;
+        }).join('');
     }
 
-    // १. फिक्स्ड मैप लोड (No IP error)
     function viewMap(lat, lng, name) {
         const frame = document.getElementById('mapFrame');
-        // Proper structure: ://google.com
         const embedUrl = "https://www.google.com/maps?q=" + lat + "," + lng + "&hl=hi&z=15&output=embed";
         frame.src = embedUrl;
         document.getElementById('mapTitle').innerText = name;
         document.getElementById('mapSection').style.display = 'block';
     }
 
-    // २. व्हाट्सएप शेयर फीचर
     function shareWA(name, lat, lng) {
         const mapUrl = "https://www.google.com/maps?q=" + lat + "," + lng;
-        const text = encodeURIComponent("केंद्र: " + name + "\nलोकेशन देखें: " + mapUrl);
+        const text = encodeURIComponent("केंद्र: " + name + "\nरास्ता: " + mapUrl);
         window.open("https://whatsapp.com" + text, "_blank");
     }
 
