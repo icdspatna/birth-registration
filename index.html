@@ -3,37 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>आंगनवाड़ी केंद्र ट्रैकर</title>
+    <title>आंगनवाड़ी केंद्र - मैप और व्हाट्सएप</title>
     <style>
-        body { font-family: sans-serif; background: #f0f2f5; padding: 20px; }
-        .container { max-width: 900px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        h2 { text-align: center; color: #1a73e8; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { padding: 12px; border: 1px solid #ddd; text-align: left; }
-        th { background: #1a73e8; color: white; }
-        .btn { background: #34a853; color: white; padding: 8px 12px; border: none; border-radius: 4px; cursor: pointer; text-decoration: none; display: inline-block; }
-        #map-box { margin-top: 20px; display: none; border: 2px solid #ddd; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; padding: 15px; margin: 0; }
+        .container { max-width: 1000px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #075e54; }
+        
+        .search-box { width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
+        
+        .table-wrapper { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 800px; }
+        th { background-color: #075e54; color: white; padding: 12px; text-align: left; }
+        td { padding: 12px; border-bottom: 1px solid #eee; font-size: 14px; }
+        
+        .btn { border: none; padding: 8px 12px; cursor: pointer; border-radius: 5px; font-size: 13px; text-decoration: none; color: white; display: inline-block; margin: 2px; }
+        .btn-map { background: #128c7e; }
+        .btn-wa { background: #25d366; }
+        .btn-nav { background: #34b7f1; }
+
+        #mapSection { display: none; margin-top: 20px; border: 2px solid #075e54; border-radius: 10px; overflow: hidden; }
         iframe { width: 100%; height: 400px; border: none; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>📍 केंद्र सूची और मार्ग</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>पंचायत</th>
-                <th>केंद्र का नाम</th>
-                <th>रास्ता देखें</th>
-            </tr>
-        </thead>
-        <tbody id="data"></tbody>
-    </table>
+    <h2>📍 केंद्र विवरण और शेयरिंग</h2>
+    
+    <input type="text" id="searchInput" class="search-box" placeholder="पंचायत या केंद्र का नाम खोजें..." onkeyup="filterTable()">
 
-    <div id="map-box">
-        <div style="background:#333; color:white; padding:10px;">नक्शा दृश्य 
-            <button onclick="document.getElementById('map-box').style.display='none'" style="float:right; background:red; color:white; border:none; cursor:pointer;">बंद करें</button>
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>पंचायत</th>
+                    <th>केंद्र</th>
+                    <th>सेविका</th>
+                    <th>मोबाइल</th>
+                    <th>कार्रवाई</th>
+                </tr>
+            </thead>
+            <tbody id="centerData"></tbody>
+        </table>
+    </div>
+
+    <div id="mapSection">
+        <div style="background:#075e54; color:white; padding:10px; display:flex; justify-content:space-between;">
+            <span id="mapTitle">लोकेशन</span>
+            <button onclick="document.getElementById('mapSection').style.display='none'" style="background:red; color:white; border:none; cursor:pointer;">बंद करें</button>
         </div>
         <iframe id="mapFrame" src=""></iframe>
     </div>
@@ -41,34 +58,52 @@
 
 <script>
     const centers = [
-        { panchayat: "रामपुर", name: "AWC 01", lat: 25.5941, lng: 85.1376 },
-        { panchayat: "लक्ष्मणपुर", name: "AWC 05", lat: 25.6126, lng: 85.1583 }
+        { panchayat: "रामपुर", name: "AWC 01", sevika: "सुनीता देवी", mobile: "9876543210", lat: 25.5941, lng: 85.1376 },
+        { panchayat: "लक्ष्मणपुर", name: "AWC 05", sevika: "मीना सिंह", mobile: "9988776655", lat: 25.6126, lng: 85.1583 }
     ];
 
-    const tbody = document.getElementById('data');
-    centers.forEach(c => {
-        tbody.innerHTML += `<tr>
-            <td>${c.panchayat}</td>
-            <td>${c.name}</td>
-            <td>
-                <button class="btn" onclick="loadMap(${c.lat}, ${c.lng})">यहाँ देखें</button>
-                <button class="btn" style="background:#4285f4" onclick="openNav(${c.lat}, ${c.lng})">नेविगेट करें</button>
-            </td>
-        </tr>`;
-    });
+    function render() {
+        const tbody = document.getElementById('centerData');
+        tbody.innerHTML = centers.map(c => `
+            <tr>
+                <td>${c.panchayat}</td>
+                <td>${c.name}</td>
+                <td>${c.sevika}</td>
+                <td>${c.mobile}</td>
+                <td>
+                    <button class="btn btn-map" onclick="viewMap(${c.lat}, ${c.lng}, '${c.name}')">मैप देखें</button>
+                    <button class="btn btn-wa" onclick="shareWA('${c.name}', ${c.lat}, ${c.lng})">व्हाट्सएप शेयर</button>
+                    <a class="btn btn-nav" href="https://google.com{c.lat},${c.lng}" target="_blank">रास्ता देखें</a>
+                </td>
+            </tr>
+        `).join('');
+    }
 
-    function loadMap(lat, lng) {
-        const box = document.getElementById('map-box');
+    // १. फिक्स्ड मैप लोड (No IP error)
+    function viewMap(lat, lng, name) {
         const frame = document.getElementById('mapFrame');
-        // स्लैश (/) का विशेष ध्यान रखा गया है
-        frame.src = "https://google.com" + lat + "," + lng + "&output=embed";
-        box.style.display = 'block';
+        // Proper structure: ://google.com
+        const embedUrl = "https://www.google.com/maps?q=" + lat + "," + lng + "&hl=hi&z=15&output=embed";
+        frame.src = embedUrl;
+        document.getElementById('mapTitle').innerText = name;
+        document.getElementById('mapSection').style.display = 'block';
     }
 
-    function openNav(lat, lng) {
-        // बाहरी ऐप खोलने के लिए लिंक
-        window.open("https://google.com" + lat + "," + lng, "_blank");
+    // २. व्हाट्सएप शेयर फीचर
+    function shareWA(name, lat, lng) {
+        const mapUrl = "https://www.google.com/maps?q=" + lat + "," + lng;
+        const text = encodeURIComponent("केंद्र: " + name + "\nलोकेशन देखें: " + mapUrl);
+        window.open("https://whatsapp.com" + text, "_blank");
     }
+
+    function filterTable() {
+        const val = document.getElementById("searchInput").value.toLowerCase();
+        const rows = document.querySelectorAll("#centerData tr");
+        rows.forEach(r => r.style.display = r.innerText.toLowerCase().includes(val) ? "" : "none");
+    }
+
+    window.onload = render;
 </script>
+
 </body>
 </html>
