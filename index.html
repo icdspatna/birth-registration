@@ -18,7 +18,7 @@
         .btn-map { background: #128c7e; } 
         #mapSection { display: none; margin-top: 20px; border: 2px solid #075e54; border-radius: 10px; overflow: hidden; }
         iframe { width: 100%; height: 450px; border: none; }
-        .coords { font-size: 11px; color: #666; }
+        .coords { font-size: 11px; color: #666; display: block; margin-top: 4px; }
     </style>
 </head>
 <body>
@@ -26,17 +26,17 @@
 <div class="container">
     <h2>📍 आंगनवाड़ी केंद्र मार्गदर्शिका</h2>
     
-    <input type="text" id="searchInput" class="search-box" placeholder="खोजें (पंचायत, कोड, या नाम)..." onkeyup="filterTable()">
+    <input type="text" id="searchInput" class="search-box" placeholder="पंचायत, केंद्र या सेविका का नाम खोजें..." onkeyup="filterTable()">
 
     <div class="table-wrapper">
         <table>
             <thead>
                 <tr>
                     <th>पंचायत</th>
-                    <th>केंद्र (नाम/कोड)</th>
-                    <th>सेविका</th>
-                    <th>सहायिका</th>
-                    <th>मोबाइल</th>
+                    <th>केंद्र विवरण (नाम/कोड)</th>
+                    <th>सेविका का नाम</th>
+                    <th>सहायिका का नाम</th>
+                    <th>मोबाइल नंबर</th>
                     <th>लोकेशन (Lat, Lng)</th>
                     <th>कार्रवाई</th>
                 </tr>
@@ -45,7 +45,7 @@
         </table>
     </div>
 
-    <!-- Map Section -->
+    <!-- पेज में मैप देखने के लिए -->
     <div id="mapSection">
         <div style="background:#075e54; color:white; padding:10px; display:flex; justify-content:space-between; align-items:center;">
             <span id="mapTitle">केंद्र की स्थिति</span>
@@ -56,16 +56,35 @@
 </div>
 
 <script>
+    // केंद्र का डेटा (आप यहाँ और केंद्र जोड़ सकते हैं)
     const centers = [
-        { panchayat: "रामपुर", name: "AWC रामपुर 01", code: "101", sevika: "सुनीता देवी", sahayika: "रीता वर्मा", mobile: "9876543210", lat: 25.5941, lng: 85.1376 },
-        { panchayat: "लक्ष्मणपुर", name: "AWC लक्ष्मणपुर 05", code: "105", sevika: "मीना सिंह", sahayika: "शांति कुमारी", mobile: "9988776655", lat: 25.6126, lng: 85.1583 }
+        { 
+            panchayat: "रामपुर", 
+            name: "AWC रामपुर 01", 
+            code: "101", 
+            sevika: "सुनीता देवी", 
+            sahayika: "रीता वर्मा", 
+            mobile: "9876543210", 
+            lat: 25.5941, 
+            lng: 85.1376 
+        },
+        { 
+            panchayat: "लक्ष्मणपुर", 
+            name: "AWC लक्ष्मणपुर 05", 
+            code: "105", 
+            sevika: "मीना सिंह", 
+            sahayika: "शांति कुमारी", 
+            mobile: "9988776655", 
+            lat: 25.6126, 
+            lng: 85.1583 
+        }
     ];
 
     function render() {
         const tbody = document.getElementById('centerData');
-        // We use 'index' to avoid passing broken strings into the function
-        tbody.innerHTML = centers.map((c, index) => {
-            const navUrl = "https://google.com" + c.lat + "," + c.lng + "&travelmode=driving";
+        tbody.innerHTML = centers.map(c => {
+            // गूगल मैप्स 'Directions' लिंक: यह दूरी और संभावित रास्ते दिखाता है
+            const navUrl = "https://www.google.com/maps/dir/?api=1&destination=" + c.lat + "," + c.lng + "&travelmode=driving";
             
             return `
                 <tr>
@@ -76,8 +95,7 @@
                     <td><a href="tel:${c.mobile}" style="color:#075e54; font-weight:bold; text-decoration:none;">${c.mobile}</a></td>
                     <td><span class="coords">${c.lat}, ${c.lng}</span></td>
                     <td>
-                        <!-- Passing index is safer than passing name strings -->
-                        <button class="btn btn-map" onclick="viewMap(${index})">यहीं देखें</button>
+                        <button class="btn btn-map" onclick="viewMap(${c.lat}, ${c.lng}, '${c.name}')">यहीं देखें</button>
                         <a href="${navUrl}" target="_blank" class="btn btn-nav">रास्ता देखें</a>
                     </td>
                 </tr>
@@ -85,24 +103,26 @@
         }).join('');
     }
 
-    function viewMap(index) {
-        const center = centers[index]; // Get details from the data list using index
+    // इसी पेज में मिनी मैप लोड करने के लिए
+    function viewMap(lat, lng, name) {
         const frame = document.getElementById('mapFrame');
         const section = document.getElementById('mapSection');
-        
-        // Corrected URL structure
-        const embedUrl = "https://google.com" + center.lat + "," + center.lng + "&hl=hi&z=15&output=embed";
+        // 'q' पैरामीटर पिन (Marker) दिखाता है
+        const embedUrl = "https://google.com" + lat + "," + lng + "&hl=hi&z=15&output=embed";
         
         frame.src = embedUrl;
-        document.getElementById('mapTitle').innerText = "केंद्र: " + center.name;
+        document.getElementById('mapTitle').innerText = "केंद्र: " + name;
         section.style.display = 'block';
         section.scrollIntoView({ behavior: 'smooth' });
     }
 
+    // सर्च फंक्शन
     function filterTable() {
         const val = document.getElementById("searchInput").value.toLowerCase();
         const rows = document.querySelectorAll("#centerData tr");
-        rows.forEach(r => r.style.display = r.innerText.toLowerCase().includes(val) ? "" : "none");
+        rows.forEach(r => {
+            r.style.display = r.innerText.toLowerCase().includes(val) ? "" : "none";
+        });
     }
 
     window.onload = render;
