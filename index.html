@@ -3,20 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>आंगनवाड़ी केंद्र - लाइव रास्ता</title>
+    <title>आंगनवाड़ी केंद्र ट्रैकर</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; padding: 15px; margin: 0; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f2f5; padding: 15px; margin: 0; }
         .container { max-width: 1000px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        h2 { text-align: center; color: #075e54; }
-        .search-box { width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
+        h2 { text-align: center; color: #075e54; margin-bottom: 20px; }
+        .search-box { width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; box-sizing: border-box; outline: none; }
         .table-wrapper { overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; min-width: 800px; }
         th { background-color: #075e54; color: white; padding: 12px; text-align: left; }
         td { padding: 12px; border-bottom: 1px solid #eee; font-size: 14px; }
-        .btn { border: none; padding: 10px 14px; cursor: pointer; border-radius: 5px; font-size: 13px; text-decoration: none; color: white; display: inline-block; margin: 2px; font-weight: bold; }
-        .btn-map { background: #128c7e; }
-        .btn-wa { background: #25d366; }
-        .btn-nav { background: #34b7f1; }
+        .btn { border: none; padding: 10px 14px; cursor: pointer; border-radius: 6px; font-size: 13px; text-decoration: none; color: white; display: inline-block; margin: 2px; font-weight: bold; }
+        .btn-nav { background: #34b7f1; } /* Blue for Directions */
+        .btn-map { background: #128c7e; } /* Green for In-page view */
+        .btn-wa { background: #25d366; }  /* WhatsApp Green */
         #mapSection { display: none; margin-top: 20px; border: 2px solid #075e54; border-radius: 10px; overflow: hidden; }
         iframe { width: 100%; height: 400px; border: none; }
     </style>
@@ -24,7 +24,7 @@
 <body>
 
 <div class="container">
-    <h2>📍 केंद्र विवरण और शेयरिंग</h2>
+    <h2>📍 आंगनवाड़ी केंद्र और मार्ग</h2>
     <input type="text" id="searchInput" class="search-box" placeholder="पंचायत या केंद्र का नाम खोजें..." onkeyup="filterTable()">
 
     <div class="table-wrapper">
@@ -42,6 +42,7 @@
         </table>
     </div>
 
+    <!-- Mini Map View inside the page -->
     <div id="mapSection">
         <div style="background:#075e54; color:white; padding:10px; display:flex; justify-content:space-between; align-items:center;">
             <span id="mapTitle">लोकेशन</span>
@@ -59,46 +60,37 @@
 
     function render() {
         const tbody = document.getElementById('centerData');
-        tbody.innerHTML = centers.map(c => `
-            <tr>
-                <td>${c.panchayat}</td>
-                <td>${c.name}</td>
-                <td>${c.sevika}</td>
-                <td><a href="tel:${c.mobile}" style="color:#075e54; font-weight:bold;">${c.mobile}</a></td>
-                <td>
-                    <button class="btn btn-map" onclick="viewMap(${c.lat}, ${c.lng}, '${c.name}')">यहीं देखें</button>
-                    <!-- JavaScript Navigation to prevent blocking -->
-                    <button class="btn btn-nav" onclick="goNav(${c.lat}, ${c.lng})">रास्ता देखें</button>
-                    <button class="btn btn-wa" onclick="shareWA('${c.name}', ${c.lat}, ${c.lng})">शेयर</button>
-                </td>
-            </tr>
-        `).join('');
+        tbody.innerHTML = centers.map(c => {
+            // शुद्ध URL फॉर्मेट जो करेंट लोकेशन से रास्ता दिखाएगा
+            const directionsUrl = "https://google.com" + c.lat + "," + c.lng + "&travelmode=driving";
+            const waText = encodeURIComponent("केंद्र: " + c.name + "\nरास्ता देखें: https://google.com" + c.lat + "," + c.lng);
+
+            return `
+                <tr>
+                    <td>${c.panchayat}</td>
+                    <td>${c.name}</td>
+                    <td>${c.sevika}</td>
+                    <td><a href="tel:${c.mobile}" style="color:#075e54; font-weight:bold; text-decoration:none;">${c.mobile}</a></td>
+                    <td>
+                        <button class="btn btn-map" onclick="viewMap(${c.lat}, ${c.lng}, '${c.name}')">यहीं देखें</button>
+                        
+                        <!-- Fixed Directions Link: Using target="_self" to avoid 'about:blank#blocked' -->
+                        <a href="${directionsUrl}" class="btn btn-nav" target="_self">रास्ता देखें</a>
+                        
+                        <a href="https://whatsapp.com{waText}" class="btn btn-wa" target="_blank">शेयर</a>
+                    </td>
+                </tr>
+            `;
+        }).join('');
     }
 
-    // १. नेविगेशन के लिए पक्का तरीका (No more blocked error)
-    function goNav(lat, lng) {
-        const url = "https://google.com" + lat + "," + lng + "&travelmode=driving";
-        // window.location.href पॉप-अप ब्लॉकर को बायपास करता है
-        window.location.href = url;
-    }
-
-    // २. मिनी मैप लोड करना
     function viewMap(lat, lng, name) {
         const frame = document.getElementById('mapFrame');
-        const section = document.getElementById('mapSection');
-        // Correct URL structure with slash and ?q=
-        const embedUrl = "https://www.google.com/maps?q=" + lat + "," + lng + "&hl=hi&z=15&output=embed";
+        const embedUrl = "https://google.com" + lat + "," + lng + "&hl=hi&z=15&output=embed";
         frame.src = embedUrl;
         document.getElementById('mapTitle').innerText = name;
-        section.style.display = 'block';
-        section.scrollIntoView({ behavior: 'smooth' });
-    }
-
-    // ३. व्हाट्सएप शेयर
-    function shareWA(name, lat, lng) {
-        const mapUrl = "https://www.google.com/maps?q=" + lat + "," + lng;
-        const text = encodeURIComponent("केंद्र: " + name + "\nरास्ता: " + mapUrl);
-        window.location.href = "https://whatsapp.com" + text;
+        document.getElementById('mapSection').style.display = 'block';
+        document.getElementById('mapSection').scrollIntoView({ behavior: 'smooth' });
     }
 
     function filterTable() {
@@ -109,6 +101,5 @@
 
     window.onload = render;
 </script>
-
 </body>
 </html>
