@@ -77,14 +77,13 @@
         `).join('');
     }
 
-    // रास्ता देखने का सही फंक्शन (By-passes pop-up blockers)
-    function startNav(lat, lng) {
-        // Universal URL format for Google Maps Directions
-        const directionsUrl = "https://google.com" + lat + "," + lng + "&travelmode=driving";
-        
-        // window.location.href का उपयोग करने से about:blank#blocked एरर नहीं आता
-        window.location.href = directionsUrl;
-    }
+function startNav(lat, lng) {
+    // The correct URL format for Google Maps Directions
+    const directionsUrl = `https://google.com{lat},${lng}&travelmode=driving`;
+    
+    // Open in a new tab to avoid blocking the current app/page
+    window.open(directionsUrl, '_blank');
+}
 
     // मिनी मैप दिखाने का फंक्शन
     function viewMap(lat, lng, name) {
